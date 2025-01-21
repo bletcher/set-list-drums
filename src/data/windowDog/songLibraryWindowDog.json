@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1737419288833,
+    "title": "Nardis",
+    "bpm": 100,
+    "timeSignature": "4/4",
+    "groove": "X:1\n%%score (MIDI)\nL:1/4\nK:C perc\nV:MIDI stem=up\n%%MIDI program 128\n[K,/4]|[gF]/4g/4g/4g/4 [gc]/4g/4g/4[gF]/4 [g]/4[gF]/4g/4g/4 [gc]/4g/4[gF]/4g/4 | [gF]/4g/4g/4g/4 [gc]/4g/4[gF]/4[g]/4 [g]/4[gF]/4g/4g/4 [gc]/4g/4[gF]/4g/4  ",
+    "notes": "Hits with Ben in the B section"
+  }
+]

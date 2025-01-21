@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1737308952966,
+    "title": "test",
+    "bpm": 120,
+    "timeSignature": "4/4",
+    "groove": "|[eC]/4e/4e/4e/4 [eA]/4e/4e/4e/4 [eC]/4e/4e/4e/4 [eA]/4e/4e/4e/4 | "
+  },
+  {
+    "id": 1737309766585,
+    "title": "jazz",
+    "bpm": 120,
+    "timeSignature": "4/4",
+    "groove": "X:1\n%%score (MIDI)\nL:1/4\nK:C perc\nV:MIDI stem=up\n%%MIDI program 128\nz/4 [^F/4][S/4][^F/4] | [K,/4][^F/4][S/4][^F/4] |"
+  },
+  {
+    "id": 1737325430958,
+    "title": "test5",
+    "bpm": 120,
+    "timeSignature": "4/4",
+    "groove": "X:1\n%%score (MIDI)\nL:1/4\nK:C perc\nV:MIDI stem=up\n%%MIDI program 128\n[K,/4][^F/16^F/16^F/16^F/16][S/8][^F/8][^F/16^F/16^F/16^F/16] | [K,/8][^F/8][^F/16^F/16^F/16^F/16][S/4][^F/16^F/16^F/16^F/16] |"
+  },
+  {
+    "id": 1737403487101,
+    "title": "new",
+    "bpm": 120,
+    "timeSignature": "4/4",
+    "groove": "X:1\n%%score (MIDI)\nL:1/4\nK:C perc\nV:MIDI stem=up\n%%MIDI program 128\n[K,/4]|[eC]/4e/4e/4e/4 [eA]/4e/4e/4e/4 [eC]/4e/4e/4e/4 [eA]/4e/4e/4e/4 | "
+  }
+]
