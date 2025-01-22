@@ -9,9 +9,13 @@ toc: false
 <script>
 // Wait for both DOM and app.js to load
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM loaded, checking for initialize...');
   if (typeof initialize === 'function') {
+    console.log('Initialize found, running...');
     initialize();
+    console.log('Setting up event listeners...');
     setupEventListeners();
+    console.log('Setup complete');
   } else {
     console.error('App functions not loaded');
   }
@@ -20,9 +24,36 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupEventListeners() {
   // Set up form event handlers
   document.querySelector('.song-form').addEventListener('submit', handleSubmit);
-  document.querySelector('[name="grooveInput"]').addEventListener('input', e => previewGroove(e.target.value));
+  
+  // Update groove input handler
+  document.querySelector('[name="grooveInput"]').addEventListener('input', e => {
+    updateGridFromGroove(e.target.value);
+    renderScore(e.target.value);
+  });
+  
+  // Update groove examples handler
   document.querySelectorAll('.groove-examples button').forEach(button => {
-    button.addEventListener('click', () => addExample(button.dataset.pattern));
+    console.log('Adding click handler to button:', button.dataset.pattern);
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('Button clicked:', button.dataset.pattern);
+      const pattern = button.dataset.pattern;
+      if (window.exampleGrooves[pattern]) {
+        console.log('Found pattern:', window.exampleGrooves[pattern]);
+        const grooveInput = document.querySelector('[name="grooveInput"]');
+        const grooveString = window.exampleGrooves[pattern].trim();
+        grooveInput.value = grooveString;
+        
+        // Clear and reinitialize grid
+        document.querySelectorAll('.beat-grid').forEach(grid => {
+          grid.innerHTML = '';
+        });
+        window.initializeGrids();
+        window.updateGridFromGroove(grooveString);
+        window.setupGridClickHandlers();
+        window.renderScore(grooveString);
+      }
+    });
   });
 
   // Library controls
@@ -86,11 +117,26 @@ function setupEventListeners() {
       <div class="form-group">
         <label>Main Groove:</label>
         <div class="groove-examples">
-          <button type="button" data-pattern="groove">Groove</button>
-          <button type="button" data-pattern="16ths">16ths</button>
+          <button type="button" data-pattern="basic">Basic</button>
+          <button type="button" data-pattern="rock">Rock</button>
+          <button type="button" data-pattern="funk">Funk</button>
+        </div>
+        <div class="groove-grid">
+          <div class="grid-row">
+            <span class="instrument">HH</span>
+            <div class="beat-grid" data-instrument="H"></div>
+          </div>
+          <div class="grid-row">
+            <span class="instrument">SN</span>
+            <div class="beat-grid" data-instrument="S"></div>
+          </div>
+          <div class="grid-row">
+            <span class="instrument">KK</span>
+            <div class="beat-grid" data-instrument="K"></div>
+          </div>
         </div>
         <textarea name="grooveInput" rows="8" 
-          placeholder="Pick a starter groove and edit it here. See the docs at https://paulrosen.github.io/abcjs/overview/purpose.html"></textarea>
+          placeholder="Or type groove pattern directly using grid notation (X for hit, - for rest)"></textarea>
         <div id="groove-preview"></div>
       </div>
       <div class="form-group">
@@ -378,10 +424,16 @@ td button:not(:last-child) {
 
 #groove-preview {
   margin-top: 1rem;
-  min-height: 100px;
+  min-height: 150px;
   padding: 1rem;
   background: #f8fafc;
   border-radius: var(--radius);
+  overflow-x: auto;
+}
+
+#groove-preview svg {
+  display: block;
+  margin: 0 auto;
 }
 
 @media print {
@@ -468,5 +520,77 @@ td button:not(:last-child) {
 .library-table tr:last-child td,
 .setlist-table tr:last-child td {
   border-bottom: none !important;
+}
+
+/* Add these styles for the grid editor */
+.groove-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  font-family: monospace;
+}
+
+.grid-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.instrument {
+  width: 2rem;
+  font-weight: bold;
+  text-align: right;
+}
+
+.beat-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 1px;
+  background: var(--border);
+  padding: 1px;
+  border-radius: 4px;
+  position: relative;
+}
+
+.grid-cell {
+  width: 24px;
+  height: 24px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  font-size: 1rem;
+  user-select: none;
+}
+
+/* Add beat numbers */
+.grid-cell[data-beat]:before {
+  content: attr(data-beat);
+  position: absolute;
+  top: -20px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Stronger visual separation between beats */
+.grid-cell:nth-child(4n+1) {
+  border-left: 2px solid var(--border);
+}
+
+.grid-cell.active {
+  background: var(--primary);
+  color: white;
+}
+
+.grid-cell:hover {
+  background: #f1f5f9;
+}
+
+.grid-cell.active:hover {
+  background: var(--primary-dark);
 }
 </style>
