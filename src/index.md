@@ -176,7 +176,7 @@ function setupEventListeners() {
         <label>Notes:</label>
         <textarea name="notesInput" rows="2" 
           placeholder="Add any notes about the song or groove..."></textarea>
-      </div>
+  </div>
       <button type="submit">Add Song</button>
     </form>
   </div>

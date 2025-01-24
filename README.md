@@ -1,59 +1,91 @@
 # Set List Drums
 
-This is an [Observable Framework](https://observablehq.com/framework/) app. To install the required dependencies, run:
+A web application for creating, managing, and organizing drum patterns with musical notation.
 
-```
+## Features
+
+### Pattern Creation
+- Interactive grid interface for creating drum patterns
+- Support for three instruments: Hi-hat (HH), Snare (SN), and Kick (KK)
+- Visual feedback with active/inactive cells
+- Built-in example patterns (Basic, Rock, Funk)
+
+### Musical Settings
+- Adjustable tempo (40-300 BPM)
+- Configurable time signatures
+- Variable measure count (1-4)
+- Selectable note divisions (quarter, eighth, sixteenth notes)
+- Standard musical staff notation display
+
+### Library Management
+- Save patterns with titles and notes
+- Load and edit existing patterns
+- Delete patterns from library
+- Export/import library as JSON file
+
+### Set List Features
+- Create set lists from saved patterns
+- Reorder songs with up/down controls
+- Remove songs from set list
+- Save/load set lists as JSON
+- Print set lists with notation
+
+## Installation
+
+This is an [Observable Framework](https://observablehq.com/framework/) app. To install:
+
+```bash
 npm install
 ```
 
-Then, to start the local preview server, run:
+To start the local preview server:
 
-```
+```bash
 npm run dev
 ```
 
-Then visit <http://localhost:3000> to preview your app.
+Then visit http://localhost:3000
 
-For more, see <https://observablehq.com/framework/getting-started>.
-
-## Project structure
-
-A typical Framework project looks like this:
+## Project Structure
 
 ```ini
 .
 ├─ src
-│  ├─ components
-│  │  └─ timeline.js           # an importable module
-│  ├─ data
-│  │  ├─ launches.csv.js       # a data loader
-│  │  └─ events.json           # a static data file
-│  ├─ example-dashboard.md     # a page
-│  ├─ example-report.md        # another page
-│  └─ index.md                 # the home page
+│  ├─ app.js                  # Core functionality and state management
+│  └─ index.md                # Main UI, styles, and event handlers
 ├─ .gitignore
-├─ observablehq.config.js      # the app config file
+├─ observablehq.config.js     # App config file
 ├─ package.json
 └─ README.md
 ```
 
-**`src`** - This is the “source root” — where your source files live. Pages go here. Each page is a Markdown file. Observable Framework uses [file-based routing](https://observablehq.com/framework/project-structure#routing), which means that the name of the file controls where the page is served. You can create as many pages as you like. Use folders to organize your pages.
+## Command Reference
 
-**`src/index.md`** - This is the home page for your app. You can have as many additional pages as you’d like, but you should always have a home page, too.
+| Command | Description |
+| --- | --- |
+| `npm install` | Install dependencies |
+| `npm run dev` | Start local preview server |
+| `npm run build` | Build static site to `./dist` |
+| `npm run deploy` | Deploy to Observable |
+| `npm run clean` | Clear local data loader cache |
 
-**`src/data`** - You can put [data loaders](https://observablehq.com/framework/data-loaders) or static data files anywhere in your source root, but we recommend putting them here.
+## Dependencies
 
-**`src/components`** - You can put shared [JavaScript modules](https://observablehq.com/framework/imports) anywhere in your source root, but we recommend putting them here. This helps you pull code out of Markdown files and into JavaScript modules, making it easier to reuse code across pages, write tests and run linters, and even share code with vanilla web applications.
+- ABCJS (v6.2.3) for musical notation
+- Modern browser with JavaScript enabled
+- File System Access API for save/load features
 
-**`observablehq.config.js`** - This is the [app configuration](https://observablehq.com/framework/config) file, such as the pages and sections in the sidebar navigation, and the app’s title.
+## Browser Support
 
-## Command reference
+- Chrome/Edge (full support)
+- Firefox (all features except file system)
+- Safari (all features except file system)
 
-| Command           | Description                                              |
-| ----------------- | -------------------------------------------------------- |
-| `npm install`            | Install or reinstall dependencies                        |
-| `npm run dev`        | Start local preview server                               |
-| `npm run build`      | Build your static site, generating `./dist`              |
-| `npm run deploy`     | Deploy your app to Observable                            |
-| `npm run clean`      | Clear the local data loader cache                        |
-| `npm run observable` | Run commands like `observable help`                      |
+## Development Notes
+
+- Console logs included for debugging
+- Grid updates trigger notation re-renders
+- Pattern changes auto-save to localStorage
+- File operations use async/await pattern
+
+For more details, see [Observable Framework documentation](https://observablehq.com/framework/getting-started).
