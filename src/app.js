@@ -56,28 +56,19 @@ window.handleSubmit = (event) => {
   const form = event.target;
   const id = Date.now();
   
-  // Build groove string from grid state
-  const instruments = ['H', 'S', 'K'];
-  let grooveString = '';
-  
-  instruments.forEach(instrument => {
-    const grid = document.querySelector(`.beat-grid[data-instrument="${instrument}"]`);
-    const cells = grid.querySelectorAll('.grid-cell');
-    grooveString += `${instrument}|`;
-    
-    // Convert grid to text pattern
-    const pattern = Array.from(cells)
-      .map(cell => cell.classList.contains('active') ? 'x' : '-')
-      .join('');
-    
-    grooveString += `${pattern}|\n`;
-  });
-  
+  // Save all current settings with the song
   const song = {
     id,
     title: form.titleInput.value,
-    groove: grooveString,
-    notes: form.notesInput.value
+    groove: window.getCurrentGrooveString(),
+    notes: form.notesInput.value,
+    settings: {
+      bpm: form.bpmInput.value,
+      beatsPerBar: form.beatsPerBar.value,
+      beatUnit: form.beatUnit.value,
+      noteDivision: form.noteDivision.value,
+      measureCount: form.measureCount.value
+    }
   };
   
   window.state.songLibrary.set(id, song);
@@ -127,9 +118,9 @@ const renderLibrary = () => {
     </tr>
   `).join('');
 
-  // Render ABC notation for each preview
+  // Render ABC notation for each preview using the song's settings
   songs.forEach(song => {
-    renderScore(song.groove, song.previewId);
+    window.renderScore(song.groove, song.previewId, song.settings);
   });
 };
 
@@ -142,9 +133,9 @@ const renderSetList = () => {
     if (!song) return null;
     return {
       ...song,
-      previewId: `setlist-preview-${song.id}-${index}`  // Unique ID for setlist previews
+      previewId: `setlist-preview-${song.id}-${index}`
     };
-  }).filter(Boolean);  // Remove null entries
+  }).filter(Boolean);
   
   // Render the HTML
   tbody.innerHTML = setlistSongs.map((song, index) => `
@@ -165,9 +156,9 @@ const renderSetList = () => {
     </tr>
   `).join('');
 
-  // Render ABC notation for each preview
+  // Render ABC notation for each preview using the song's settings
   setlistSongs.forEach(song => {
-    renderScore(song.groove, song.previewId);
+    window.renderScore(song.groove, song.previewId, song.settings);
   });
 };
 
@@ -368,40 +359,30 @@ const setupGridClickHandlers = () => {
 // Update initializeGrids to use the new function
 const initializeGrids = () => {
   console.log('Initializing grids...');
-  document.querySelectorAll('.beat-grid').forEach(grid => {
-    console.log('Found grid:', grid.dataset.instrument);
-    // Create 16 cells (4 beats × 4 subdivisions)
-    for (let i = 0; i < 16; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'grid-cell';
-      cell.dataset.index = i;
-      cell.textContent = '-';
-      if (i % 4 === 0) {
-        cell.dataset.beat = (i / 4) + 1;
-      }
-      grid.appendChild(cell);
-    }
-  });
-
-  // Set up click handlers
-  setupGridClickHandlers();
+  window.updateTimeSignature();
 };
 
-const renderScore = (grooveString, elementId = 'groove-preview') => {
+const renderScore = (grooveString, elementId = 'groove-preview', settings = null) => {
   const scoreDiv = document.getElementById(elementId);
   if (!grooveString || !scoreDiv) {
     if (scoreDiv) scoreDiv.innerHTML = '';
     return;
   }
 
-  console.log('Input groove string:', grooveString);  // Debug log
-
+  // Use provided settings or get from form
+  const bpm = settings?.bpm || document.querySelector('[name="bpmInput"]')?.value || '120';
+  const beatsPerBar = settings?.beatsPerBar || document.querySelector('[name="beatsPerBar"]')?.value || '4';
+  const beatUnit = settings?.beatUnit || document.querySelector('[name="beatUnit"]')?.value || '4';
+  const noteDivision = settings?.noteDivision || document.querySelector('[name="noteDivision"]')?.value || '16';
+  const measureCount = settings?.measureCount || parseInt(document.querySelector('[name="measureCount"]').value) || 1;
+  
   // Convert our grid notation to ABC notation
   const lines = grooveString.trim().split('\n');
   let abcString = `X:1
-L:1/16
+L:1/${noteDivision}
 K:C perc
-M:4/4
+M:${beatsPerBar}/${beatUnit}
+Q:1/4=${bpm}
 V:1 perc stafflines=5 stem=up
 %%barnumbers 0
 %%voicecombine 1
@@ -409,35 +390,32 @@ V:1 perc stafflines=5 stem=up
 %%beams 1 above
 %%stemheight 20
 %%beamslope 0.2
-`;
+[V:1] `;
 
   // Process each voice (HH, SN, BD)
   const voices = {
-    'H': Array(16).fill(false),  // Hi-hat
-    'S': Array(16).fill(false),  // Snare
-    'K': Array(16).fill(false)   // Kick/Bass Drum
+    'H': [],
+    'S': [],
+    'K': []
   };
 
-  // Collect notes for each voice
+  // Collect notes for each voice - don't repeat patterns
   lines.forEach(line => {
     const parts = line.trim().split('|');
     const instrument = parts[0];
     if (!parts[1]) return;
 
-    const pattern = parts[1];
-    pattern.split('').forEach((n, i) => {
-      if (i < 16) {
-        voices[instrument][i] = n === 'x';
-      }
-    });
+    // Get pattern directly from grid string
+    const pattern = parts[1].split('');
+    voices[instrument] = pattern.map(n => n === 'x');
   });
-
-  console.log('Processed voices:', voices);  // Debug log
 
   // Create notes array for all positions
   const allNotes = [];
-  for (let i = 0; i < 16; i++) {
-    // For each position, add all three instruments in order
+  const totalCells = voices.H.length;
+  const cellsPerMeasure = totalCells / measureCount;
+  
+  for (let i = 0; i < totalCells; i++) {
     allNotes.push([
       { instrument: 'H', isHit: voices.H[i] },
       { instrument: 'S', isHit: voices.S[i] },
@@ -445,33 +423,40 @@ V:1 perc stafflines=5 stem=up
     ]);
   }
 
-  console.log('All notes:', allNotes);  // Debug log
-
-  // Convert notes to ABC notation
+  // Convert notes to ABC notation with line breaks
   let combinedNotes = [];
   allNotes.forEach((chord, i) => {
     const notes = chord.map(note => {
       if (note.instrument === 'H') {
-        return '!style=x!g^';  // Hi-hat with x notehead and explicit stem up
+        return '!style=x!g^';
       } else {
-        const pitch = note.instrument === 'S' ? 'c^' : 'C^';  // Add stem up to all notes
+        const pitch = note.instrument === 'S' ? 'c^' : 'D^';
         return pitch;
       }
     });
     combinedNotes.push(`[${notes.join('')}]`);
     
     // Add space between beats for beaming
-    if ((i + 1) % 4 === 0 && i < 15) {
+    const subdivisions = parseInt(noteDivision) / parseInt(beatUnit);
+    if ((i + 1) % subdivisions === 0 && i < totalCells - 1) {
       combinedNotes.push(' ');
+    }
+    
+    // Add bar line between measures
+    if ((i + 1) % cellsPerMeasure === 0 && i < totalCells - 1) {
+      combinedNotes.push('|');
+      // Add line break after every 2 measures
+      const currentMeasure = Math.floor((i + 1) / cellsPerMeasure);
+      if (currentMeasure % 2 === 0) {
+        combinedNotes.push('\n');
+      }
     }
   });
 
   // Add combined voice to ABC string
-  abcString += `[V:1] ${combinedNotes.join('')}|\n`;
+  abcString += `${combinedNotes.join('')}|`;
 
-  console.log('ABC string:', abcString);  // Debug log
-
-  // Render using ABCJS
+  // Render using ABCJS with updated options
   const visualObj = ABCJS.renderAbc(elementId, abcString, {
     add_classes: true,
     drum: true,
@@ -479,12 +464,18 @@ V:1 perc stafflines=5 stem=up
     format: {
       alignComposer: false,
       alignWordsBelow: false,
-      titleLeft: false
+      titleLeft: false,
+      showTempoRelative: true,
+      defaultQpm: parseInt(bpm),
+      maxspacing: 1.5,
+      scale: 0.7,
+      staffwidth: 500,
+      measuresPerLine: 2  // Force 2 measures per line
     },
     paddingright: 0,
     paddingleft: 0,
     scale: 1.0,
-    staffwidth: 500
+    showTempo: true
   });
 
   // Style the notes after rendering
@@ -504,20 +495,18 @@ V:1 perc stafflines=5 stem=up
       // Find the note heads - they should be the first 3 paths
       const noteHeads = Array.from(paths).slice(0, 3);
       
-      // Style each note head in the chord - note that in ABC notation,
-      // the notes are ordered from bottom to top, so we need to reverse
-      // our instrument order to match
+      // Style each note head in the chord
       noteHeads.forEach((head, voiceIndex) => {
-        if (head) {  // Make sure head exists
-          // Map voice index to instrument (K=0, S=1, H=2 in the SVG)
-          const instrument = ['K', 'S', 'H'][voiceIndex];
-          const isHit = voices[instrument][index];
-          console.log(`Setting ${instrument} at ${index} to ${isHit ? 'black' : 'grey'}`);  // Debug log
-          
-          // Style the note head
-          head.style.fill = isHit ? 'black' : 'rgba(0,0,0,0.2)';
-          head.style.stroke = isHit ? 'black' : 'rgba(0,0,0,0.2)';
-        }
+        if (!head) return;  // Skip if no head exists
+        
+        // Map voice index to instrument (K=0, S=1, H=2 in the SVG)
+        const instrument = ['K', 'S', 'H'][voiceIndex];
+        const isHit = voices[instrument] && voices[instrument][index];  // Add safety check
+        console.log(`Setting ${instrument} at ${index} to ${isHit ? 'black' : 'grey'}`);
+        
+        // Style the note head
+        head.style.fill = isHit ? 'black' : 'rgba(0,0,0,0.2)';
+        head.style.stroke = isHit ? 'black' : 'rgba(0,0,0,0.2)';
       });
 
       // Find and style the stem and flags if they exist
@@ -525,17 +514,132 @@ V:1 perc stafflines=5 stem=up
       const flag = paths[4];  // Usually the 5th path is the flag
       
       if (stem) {
-        const anyHit = ['H', 'S', 'K'].some(inst => voices[inst][index]);
+        const anyHit = ['H', 'S', 'K'].some(inst => 
+          voices[inst] && voices[inst][index]  // Add safety check
+        );
         stem.style.stroke = anyHit ? 'black' : 'rgba(0,0,0,0.2)';
       }
       if (flag) {
-        const anyHit = ['H', 'S', 'K'].some(inst => voices[inst][index]);
+        const anyHit = ['H', 'S', 'K'].some(inst => 
+          voices[inst] && voices[inst][index]  // Add safety check
+        );
         flag.style.fill = anyHit ? 'black' : 'rgba(0,0,0,0.2)';
       }
     });
   }
 };
 
+// Add this new function to get the current groove pattern from the grid
+window.getCurrentGrooveString = () => {
+  const instruments = ['H', 'S', 'K'];
+  let grooveString = '';
+  
+  instruments.forEach(instrument => {
+    const grid = document.querySelector(`.beat-grid[data-instrument="${instrument}"]`);
+    const cells = grid.querySelectorAll('.grid-cell');
+    grooveString += `${instrument}|`;
+    
+    // Convert grid to text pattern
+    const pattern = Array.from(cells)
+      .map(cell => cell.classList.contains('active') ? 'x' : '-')
+      .join('');
+    
+    grooveString += `${pattern}|\n`;
+  });
+  
+  return grooveString;
+};
+
+// Update the updateBPM function
+window.updateBPM = (bpm) => {
+  const grooveString = window.getCurrentGrooveString();
+  if (grooveString) {
+    // Generate new ABC notation with updated BPM
+    const abcString = window.generateAbcNotation(grooveString);
+    const grooveInput = document.querySelector('[name="grooveInput"]');
+    if (grooveInput) {
+      grooveInput.value = abcString;
+    }
+    // Re-render the score
+    window.renderScore(grooveString);
+  }
+};
+
+// Update generateAbcNotation to include BPM
+window.generateAbcNotation = (grooveString) => {
+  const bpm = document.querySelector('[name="bpmInput"]')?.value || '120';
+  const beatsPerBar = document.querySelector('[name="beatsPerBar"]')?.value || '4';
+  const beatUnit = document.querySelector('[name="beatUnit"]')?.value || '4';
+  const noteDivision = document.querySelector('[name="noteDivision"]')?.value || '16';
+  const measureCount = parseInt(document.querySelector('[name="measureCount"]').value) || 1;
+  
+  let abcString = `X:1
+L:1/${noteDivision}
+K:C perc
+M:${beatsPerBar}/${beatUnit}
+Q:1/4=${bpm}
+V:1 perc stafflines=5 stem=up
+%%barnumbers 0
+%%voicecombine 1
+%%stems 1 up
+%%beams 1 above
+%%stemheight 20
+%%beamslope 0.2
+[V:1] `;
+
+  // Process the grid pattern into ABC notation
+  const voices = {
+    'H': [],
+    'S': [],
+    'K': []
+  };
+
+  // Parse the groove string into voices - don't repeat here since grid already has all measures
+  grooveString.trim().split('\n').forEach(line => {
+    const parts = line.trim().split('|');
+    const instrument = parts[0];
+    if (!parts[1]) return;
+
+    // Get the pattern directly from the grid string
+    const pattern = parts[1].split('');
+    voices[instrument] = pattern.map(n => n === 'x');
+  });
+
+  // Convert to ABC notation
+  const notes = [];
+  const totalCells = voices.H.length;
+  const cellsPerMeasure = totalCells / measureCount;
+  
+  for (let i = 0; i < totalCells; i++) {
+    const chord = [
+      voices.H[i] ? '!style=x!g^' : 'z',  // Hi-hat
+      voices.S[i] ? 'c^' : 'z',           // Snare
+      voices.K[i] ? 'D^' : 'z'            // Kick
+    ];
+    notes.push(`[${chord.join('')}]`);
+    
+    // Add space between beats for beaming
+    const subdivisions = parseInt(noteDivision) / parseInt(beatUnit);
+    if ((i + 1) % subdivisions === 0 && i < totalCells - 1) {
+      notes.push(' ');
+    }
+    
+    // Add bar line between measures
+    if ((i + 1) % cellsPerMeasure === 0 && i < totalCells - 1) {
+      notes.push('|');
+      // Add a line break after every 2 measures
+      const currentMeasure = Math.floor((i + 1) / cellsPerMeasure);
+      if (currentMeasure % 2 === 0) {
+        notes.push('\n');
+      }
+    }
+  }
+  
+  abcString += notes.join('') + '|';
+  return abcString;
+};
+
+// Update updateGrooveFromGrid to use the new function
 const updateGrooveFromGrid = () => {
   const instruments = ['H', 'S', 'K'];
   let grooveString = '';
@@ -553,12 +657,20 @@ const updateGrooveFromGrid = () => {
     grooveString += `${pattern}|\n`;
   });
   
+  // Generate and display ABC notation
+  const abcString = window.generateAbcNotation(grooveString);
+  const grooveInput = document.querySelector('[name="grooveInput"]');
+  if (grooveInput) {
+    grooveInput.value = abcString;
+  }
+  
   window.renderScore(grooveString);
 };
 
 const updateGridFromGroove = (grooveString) => {
   console.log('Updating grid from groove:', grooveString);
   const lines = grooveString.trim().split('\n');
+  const measureCount = parseInt(document.querySelector('[name="measureCount"]').value) || 1;
   
   // Clear all cells first
   document.querySelectorAll('.grid-cell').forEach(cell => {
@@ -574,16 +686,20 @@ const updateGridFromGroove = (grooveString) => {
     if (!grid) return;
     
     const cells = grid.querySelectorAll('.grid-cell');
-    const notes = pattern.replace(/\|/g, '').split('');
+    const basePattern = pattern.replace(/\|/g, '').split('');
     
-    notes.forEach((note, i) => {
-      if (i < cells.length) {
-        if (note === 'x') {
-          cells[i].classList.add('active');
-          cells[i].textContent = 'x';
+    // Repeat pattern for each measure
+    for (let m = 0; m < measureCount; m++) {
+      basePattern.forEach((note, i) => {
+        const cellIndex = m * basePattern.length + i;
+        if (cellIndex < cells.length) {
+          if (note === 'x') {
+            cells[cellIndex].classList.add('active');
+            cells[cellIndex].textContent = 'x';
+          }
         }
-      }
-    });
+      });
+    }
   });
 };
 
@@ -621,9 +737,6 @@ const loadGroove = (songId) => {
 const renderGroovePreview = (grooveString, uniqueId) => {
   if (!grooveString) return '';
   
-  console.log('Rendering preview for:', uniqueId, grooveString); // Debug log
-  
-  // Add a class to help with styling and debugging
   return `
     <div class="groove-preview-container">
       <div id="${uniqueId}" class="groove-preview" style="min-height: 100px; border: 1px solid #eee;">
@@ -685,4 +798,145 @@ window.initialize = async () => {
   } catch (error) {
     console.error('Error initializing:', error);
   }
+};
+
+// Add these new functions
+window.updateTimeSignature = () => {
+  const beatsPerBar = parseInt(document.querySelector('[name="beatsPerBar"]').value);
+  const beatUnit = parseInt(document.querySelector('[name="beatUnit"]').value);
+  const noteDivision = parseInt(document.querySelector('[name="noteDivision"]').value);
+  const measureCount = parseInt(document.querySelector('[name="measureCount"]').value);
+  
+  // Calculate total grid cells needed
+  const subdivisions = noteDivision / beatUnit;  // How many divisions per beat
+  const totalCells = beatsPerBar * subdivisions * measureCount;  // Multiply by measure count
+  
+  // Reinitialize grids with new size
+  document.querySelectorAll('.beat-grid').forEach(grid => {
+    grid.innerHTML = '';
+    grid.style.gridTemplateColumns = `repeat(${totalCells}, 1fr)`;
+    
+    // Create cells
+    for (let i = 0; i < totalCells; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'grid-cell';
+      cell.dataset.index = i;
+      cell.textContent = '-';
+      
+      // Add beat numbers (reset for each measure)
+      if (i % subdivisions === 0) {
+        const measureIndex = Math.floor(i / (beatsPerBar * subdivisions));
+        const beatInMeasure = (Math.floor(i / subdivisions) % beatsPerBar) + 1;
+        cell.dataset.beat = `${measureIndex + 1}.${beatInMeasure}`;
+      }
+      
+      grid.appendChild(cell);
+    }
+  });
+  
+  // Update grid styling for beat and measure separation
+  const style = document.createElement('style');
+  style.textContent = `
+    .grid-cell:nth-child(${subdivisions}n+1) {
+      border-left: 2px solid var(--border);
+    }
+    .grid-cell:nth-child(${beatsPerBar * subdivisions}n+1) {
+      border-left: 4px solid var(--border);
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Reattach click handlers
+  window.setupGridClickHandlers();
+  
+  // Update ABC notation
+  const grooveString = window.getCurrentGrooveString();
+  if (grooveString) {
+    const abcString = window.generateAbcNotation(grooveString);
+    window.renderScore(grooveString);
+  }
+};
+
+window.updateNoteDivision = (value) => {
+  // Update time signature to trigger grid update
+  window.updateTimeSignature();
+};
+
+// Update generateAbcNotation to include time signature
+window.generateAbcNotation = (grooveString) => {
+  const bpm = document.querySelector('[name="bpmInput"]')?.value || '120';
+  const beatsPerBar = document.querySelector('[name="beatsPerBar"]')?.value || '4';
+  const beatUnit = document.querySelector('[name="beatUnit"]')?.value || '4';
+  const noteDivision = document.querySelector('[name="noteDivision"]')?.value || '16';
+  const measureCount = parseInt(document.querySelector('[name="measureCount"]').value) || 1;
+  
+  let abcString = `X:1
+L:1/${noteDivision}
+K:C perc
+M:${beatsPerBar}/${beatUnit}
+Q:1/4=${bpm}
+V:1 perc stafflines=5 stem=up
+%%barnumbers 0
+%%voicecombine 1
+%%stems 1 up
+%%beams 1 above
+%%stemheight 20
+%%beamslope 0.2
+[V:1] `;
+
+  // Process the grid pattern into ABC notation
+  const voices = {
+    'H': [],
+    'S': [],
+    'K': []
+  };
+
+  // Parse the groove string into voices
+  grooveString.trim().split('\n').forEach(line => {
+    const parts = line.trim().split('|');
+    const instrument = parts[0];
+    if (!parts[1]) return;
+
+    const pattern = parts[1];
+    voices[instrument] = pattern.split('').map(n => n === 'x');
+  });
+
+  // Convert to ABC notation
+  const notes = [];
+  const totalCells = voices.H.length;
+  const cellsPerMeasure = totalCells / measureCount;
+  
+  for (let i = 0; i < totalCells; i++) {
+    const chord = [
+      voices.H[i] ? '!style=x!g^' : 'z',  // Hi-hat
+      voices.S[i] ? 'c^' : 'z',           // Snare
+      voices.K[i] ? 'D^' : 'z'            // Kick (changed from F to D)
+    ];
+    notes.push(`[${chord.join('')}]`);
+    
+    // Add space between beats for beaming
+    const subdivisions = parseInt(noteDivision) / parseInt(beatUnit);
+    if ((i + 1) % subdivisions === 0 && i < totalCells - 1) {
+      notes.push(' ');
+    }
+    
+    // Add bar line between measures
+    if ((i + 1) % cellsPerMeasure === 0 && i < totalCells - 1) {
+      notes.push('|');
+      // Add a line break after every 2 measures
+      const currentMeasure = Math.floor((i + 1) / cellsPerMeasure);
+      if (currentMeasure % 2 === 0) {
+        notes.push('\n');
+      }
+    }
+  }
+  
+  abcString += notes.join('') + '|';
+  return abcString;
+};
+
+// Update initializeGrids to use time signature
+window.initializeGrids = () => {
+  console.log('Initializing grids...');
+  window.updateTimeSignature();
 }; 

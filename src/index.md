@@ -25,12 +25,6 @@ function setupEventListeners() {
   // Set up form event handlers
   document.querySelector('.song-form').addEventListener('submit', handleSubmit);
   
-  // Update groove input handler
-  document.querySelector('[name="grooveInput"]').addEventListener('input', e => {
-    updateGridFromGroove(e.target.value);
-    renderScore(e.target.value);
-  });
-  
   // Update groove examples handler
   document.querySelectorAll('.groove-examples button').forEach(button => {
     console.log('Adding click handler to button:', button.dataset.pattern);
@@ -40,9 +34,16 @@ function setupEventListeners() {
       const pattern = button.dataset.pattern;
       if (window.exampleGrooves[pattern]) {
         console.log('Found pattern:', window.exampleGrooves[pattern]);
-        const grooveInput = document.querySelector('[name="grooveInput"]');
-        const grooveString = window.exampleGrooves[pattern].trim();
-        grooveInput.value = grooveString;
+        const baseGroove = window.exampleGrooves[pattern].trim();
+        const measureCount = parseInt(document.querySelector('[name="measureCount"]').value) || 1;
+        
+        // Repeat the base groove for each measure
+        const lines = baseGroove.split('\n');
+        const grooveString = lines.map(line => {
+          const [instrument, pattern] = line.trim().split('|');
+          const basePattern = pattern.replace(/\|/g, '');
+          return `${instrument}|${basePattern.repeat(measureCount)}|`;
+        }).join('\n');
         
         // Clear and reinitialize grid
         document.querySelectorAll('.beat-grid').forEach(grid => {
@@ -51,6 +52,10 @@ function setupEventListeners() {
         window.initializeGrids();
         window.updateGridFromGroove(grooveString);
         window.setupGridClickHandlers();
+        
+        // Generate and display ABC notation
+        const abcString = window.generateAbcNotation(grooveString);
+        
         window.renderScore(grooveString);
       }
     });
@@ -113,6 +118,34 @@ function setupEventListeners() {
           <label>Song Title:</label>
           <input type="text" name="titleInput" required>
         </div>
+        <div class="form-group">
+          <label>Tempo (BPM):</label>
+          <input type="number" name="bpmInput" value="120" min="40" max="300" 
+            oninput="window.updateBPM(this.value)">
+        </div>
+        <div class="form-group time-signature">
+          <label>Time Signature:</label>
+          <div class="time-inputs">
+            <input type="number" name="beatsPerBar" value="4" min="1" max="16" 
+              oninput="window.updateTimeSignature()">
+            <span class="divider">/</span>
+            <input type="number" name="beatUnit" value="4" min="2" max="16" step="2"
+              oninput="window.updateTimeSignature()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Measures:</label>
+          <input type="number" name="measureCount" value="1" min="1" max="4" 
+            oninput="window.updateTimeSignature()">
+        </div>
+        <div class="form-group">
+          <label>Note Division:</label>
+          <select name="noteDivision" onchange="window.updateNoteDivision(this.value)">
+            <option value="4">Quarter Notes</option>
+            <option value="8">Eighth Notes</option>
+            <option value="16" selected>Sixteenth Notes</option>
+          </select>
+        </div>
       </div>
       <div class="form-group">
         <label>Main Groove:</label>
@@ -121,22 +154,22 @@ function setupEventListeners() {
           <button type="button" data-pattern="rock">Rock</button>
           <button type="button" data-pattern="funk">Funk</button>
         </div>
-        <div class="groove-grid">
-          <div class="grid-row">
-            <span class="instrument">HH</span>
-            <div class="beat-grid" data-instrument="H"></div>
-          </div>
-          <div class="grid-row">
-            <span class="instrument">SN</span>
-            <div class="beat-grid" data-instrument="S"></div>
-          </div>
-          <div class="grid-row">
-            <span class="instrument">KK</span>
-            <div class="beat-grid" data-instrument="K"></div>
+        <div class="grid-scroll-container">
+          <div class="groove-grid">
+            <div class="grid-row">
+              <span class="instrument">HH</span>
+              <div class="beat-grid" data-instrument="H"></div>
+            </div>
+            <div class="grid-row">
+              <span class="instrument">SN</span>
+              <div class="beat-grid" data-instrument="S"></div>
+            </div>
+            <div class="grid-row">
+              <span class="instrument">KK</span>
+              <div class="beat-grid" data-instrument="K"></div>
+            </div>
           </div>
         </div>
-        <textarea name="grooveInput" rows="8" 
-          placeholder="Or type groove pattern directly using grid notation (X for hit, - for rest)"></textarea>
         <div id="groove-preview"></div>
       </div>
       <div class="form-group">
@@ -150,7 +183,7 @@ function setupEventListeners() {
   <!-- Lists Container -->
   <div class="list-container">
     <!-- Song Library -->
-    <div class="card">
+  <div class="card">
       <h3 class="library-title">
         Song Library
         <span class="filename"></span>
@@ -158,7 +191,7 @@ function setupEventListeners() {
       <div class="library-controls">
         <button data-action="save-library">Save Library</button>
         <button data-action="load-library">Load Library</button>
-      </div>
+  </div>
       <table class="library-table">
         <thead>
           <tr>
@@ -169,9 +202,9 @@ function setupEventListeners() {
         </thead>
         <tbody></tbody>
       </table>
-    </div>
+  </div>
     <!-- Set List Management -->
-    <div class="card">
+  <div class="card">
       <h3 class="setlist-title">
         Current Set List
         <span class="filename"></span>
@@ -181,7 +214,7 @@ function setupEventListeners() {
         <button data-action="load-setlist">Load Set List</button>
         <button data-action="print">Print</button>
         <button data-action="clear">Clear</button>
-      </div>
+  </div>
       <table class="setlist-table">
         <thead>
           <tr>
@@ -193,7 +226,7 @@ function setupEventListeners() {
         </thead>
         <tbody></tbody>
       </table>
-    </div>
+  </div>
   </div>
 </div>
 
@@ -497,9 +530,41 @@ td button:not(:last-child) {
 /* Add these styles */
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: minmax(200px, 2fr) minmax(80px, 1fr) minmax(120px, 1fr) minmax(80px, 1fr) minmax(120px, 1fr);
   gap: 1.5rem;
   margin-bottom: 1.5rem;
+}
+
+/* Add specific input widths */
+input[name="bpmInput"],
+input[name="measureCount"] {
+  width: 80px;
+}
+
+/* Add responsive adjustments */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+  }
+  
+  .form-group input,
+  .form-group select {
+    width: auto;
+    min-width: 80px;
+  }
+  
+  .time-signature .time-inputs {
+    justify-content: center;
+  }
+}
+
+/* Update time signature container */
+.time-signature .time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 100px;
 }
 
 /* Add these styles */
@@ -554,7 +619,7 @@ td button:not(:last-child) {
 }
 
 .grid-cell {
-  width: 24px;
+  min-width: 24px;  /* Change width to min-width */
   height: 24px;
   background: white;
   cursor: pointer;
@@ -592,5 +657,105 @@ td button:not(:last-child) {
 
 .grid-cell.active:hover {
   background: var(--primary-dark);
+}
+
+/* Add time signature styles */
+.time-signature .time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.time-signature input {
+  width: 3rem;
+  text-align: center;
+}
+
+.time-signature .divider {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Update grid scroll container styles */
+.grid-scroll-container {
+  overflow-x: auto;
+  margin: 1rem 0;
+  padding-bottom: 0.5rem;  /* Space for scrollbar */
+  max-width: calc(100vw - 200px);  /* Leave room for instrument labels */
+}
+
+.groove-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-family: monospace;
+}
+
+.beat-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 1px;
+  background: var(--border);
+  padding: 1px;
+  border-radius: 4px;
+  position: relative;
+}
+
+.grid-cell {
+  min-width: 24px;
+  height: 24px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  font-size: 1rem;
+  user-select: none;
+}
+
+/* Add beat numbers */
+.grid-cell[data-beat]:before {
+  content: attr(data-beat);
+  position: absolute;
+  top: -20px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Stronger visual separation between beats */
+.grid-cell:nth-child(4n+1) {
+  border-left: 2px solid var(--border);
+}
+
+.grid-cell.active {
+  background: var(--primary);
+  color: white;
+}
+
+.grid-cell:hover {
+  background: #f1f5f9;
+}
+
+.grid-cell.active:hover {
+  background: var(--primary-dark);
+}
+
+/* Add time signature styles */
+.time-signature .time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.time-signature input {
+  width: 3rem;
+  text-align: center;
+}
+
+.time-signature .divider {
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 </style>
