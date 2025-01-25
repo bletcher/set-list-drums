@@ -33,29 +33,18 @@ function setupEventListeners() {
       console.log('Button clicked:', button.dataset.pattern);
       const pattern = button.dataset.pattern;
       if (window.exampleGrooves[pattern]) {
-        console.log('Found pattern:', window.exampleGrooves[pattern]);
-        const baseGroove = window.exampleGrooves[pattern].trim();
-        const measureCount = parseInt(document.querySelector('[name="measureCount"]').value) || 1;
+        console.log('Found pattern:', button.dataset.pattern);
+        const grooveString = window.getExampleGroove(pattern).trim();
         
-        // Repeat the base groove for each measure
-        const lines = baseGroove.split('\n');
-        const grooveString = lines.map(line => {
-          const [instrument, pattern] = line.trim().split('|');
-          const basePattern = pattern.replace(/\|/g, '');
-          return `${instrument}|${basePattern.repeat(measureCount)}|`;
-        }).join('\n');
+        // First update the grid size based on current settings
+        window.updateTimeSignature();
         
-        // Clear and reinitialize grid
-        document.querySelectorAll('.beat-grid').forEach(grid => {
-          grid.innerHTML = '';
-        });
-        window.initializeGrids();
+        // Then apply the pattern
         window.updateGridFromGroove(grooveString);
         window.setupGridClickHandlers();
         
         // Generate and display ABC notation
         const abcString = window.generateAbcNotation(grooveString);
-        
         window.renderScore(grooveString);
       }
     });
@@ -89,7 +78,7 @@ function setupEventListeners() {
     const { action, id } = button.dataset;
     if (action === 'add-to-set') addToSetList(parseInt(id));
     if (action === 'delete-song') deleteSong(parseInt(id));
-    if (action === 'load-groove') loadGroove(parseInt(id));
+    if (action === 'load-song') loadSong(parseInt(id));
   });
 
   // Set list table actions
@@ -127,16 +116,16 @@ function setupEventListeners() {
           <label>Time Signature:</label>
           <div class="time-inputs">
             <input type="number" name="beatsPerBar" value="4" min="1" max="16" 
-              oninput="window.updateTimeSignature()">
+              oninput="window.updateTimeSignature(); window.renderScore(window.getCurrentGrooveString())">
             <span class="divider">/</span>
             <input type="number" name="beatUnit" value="4" min="2" max="16" step="2"
-              oninput="window.updateTimeSignature()">
+              oninput="window.updateTimeSignature(); window.renderScore(window.getCurrentGrooveString())">
           </div>
         </div>
         <div class="form-group">
           <label>Measures:</label>
           <input type="number" name="measureCount" value="1" min="1" max="4" 
-            oninput="window.updateTimeSignature()">
+            oninput="window.updateTimeSignature(); window.renderScore(window.getCurrentGrooveString())">
         </div>
         <div class="form-group">
           <label>Note Division:</label>
@@ -189,9 +178,18 @@ function setupEventListeners() {
         <span class="filename"></span>
       </h3>
       <div class="library-controls">
+        <div class="search-container">
+          <input 
+            type="text" 
+            id="library-search" 
+            placeholder="Search songs..." 
+            class="search-input"
+          >
+        </div>
         <button data-action="save-library">Save Library</button>
         <button data-action="load-library">Load Library</button>
-  </div>
+        <input type="file" id="library-file-input" style="display: none" accept=".json">
+      </div>
       <table class="library-table">
         <thead>
           <tr>
@@ -212,9 +210,10 @@ function setupEventListeners() {
       <div class="setlist-controls">
         <button data-action="save-setlist">Save Set List</button>
         <button data-action="load-setlist">Load Set List</button>
+        <input type="file" id="setlist-file-input" style="display: none" accept=".json">
         <button data-action="print">Print</button>
         <button data-action="clear">Clear</button>
-  </div>
+      </div>
       <table class="setlist-table">
         <thead>
           <tr>
@@ -264,8 +263,8 @@ body {
   margin: 1rem 0;
   padding: 1rem 0;
   font-size: 3.5rem;
+  line-height: 1.1;
   font-weight: 800;
-  line-height: 1;
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -380,11 +379,12 @@ button {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-button:hover {
+button:active {
+  transform: scale(0.96);
   background: var(--primary-dark);
-  transform: translateY(-1px);
 }
 
 .setlist-controls {
@@ -424,22 +424,40 @@ button:hover {
   border-bottom: none;
 }
 
+.library-table tr.song-row:nth-of-type(4n+1),
+.library-table tr.groove-row:nth-of-type(4n+2),
+.setlist-table tr.song-row:nth-of-type(4n+1),
+.setlist-table tr.groove-row:nth-of-type(4n+2) {
+  background-color: #f8fafc;
+}
+
 .library-table tr:hover,
 .setlist-table tr:hover {
-  background: #f8fafc;
+  background: #f1f5f9 !important;
+  transition: background-color 0.2s ease;
 }
 
-td button {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.85rem;
+/* Highlight the groove row when hovering over the song row */
+.setlist-table tr:hover + tr.groove-row,
+.library-table tr:hover + tr.groove-row {
+  background: #f1f5f9 !important;
 }
 
-td button:not(:last-child) {
-  margin-right: 0.5rem;
+/* Highlight the song row when hovering over the groove row */
+.setlist-table tr.groove-row:hover,
+.library-table tr.groove-row:hover {
+  background: #f1f5f9 !important;
 }
 
-.groove-row {
-  background: #f8fafc;
+.setlist-table tr.groove-row:hover ~ tr.song-row[data-index="${attr(data-index)}"],
+.library-table tr.groove-row:hover ~ tr.song-row[data-index="${attr(data-index)}"] {
+  background: #f1f5f9 !important;
+}
+
+/* Add transition for smoother highlighting */
+.setlist-table tr, .library-table tr,
+.setlist-table tr.groove-row, .library-table tr.groove-row {
+  transition: background-color 0.2s ease;
 }
 
 .groove-row td {
@@ -611,18 +629,18 @@ input[name="measureCount"] {
 .beat-grid {
   display: grid;
   grid-template-columns: repeat(16, 1fr);
-  gap: 1px;
-  background: var(--border);
-  padding: 1px;
+  gap: 0;
   border-radius: 4px;
   position: relative;
+  flex: 1;
 }
 
 .grid-cell {
-  min-width: 24px;  /* Change width to min-width */
-  height: 24px;
-  background: white;
+  width: 32px;
+  height: 32px;
+  background: #f8fafc;  /* Light grey background */
   cursor: pointer;
+  touch-action: manipulation;
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
@@ -630,20 +648,60 @@ input[name="measureCount"] {
   font-family: monospace;
   font-size: 1rem;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 4px;
+  margin: 1px;
+  box-shadow: inset 0 0 0 1px #e2e8f0;
 }
 
-/* Add beat numbers */
+.grid-cell.active {
+  background: var(--primary);
+  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.grid-cell:hover {
+  background: #f1f5f9;
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.grid-cell.active:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+}
+
+/* Make measure divisions more prominent */
+.grid-cell:nth-child(4n+1) {
+  box-shadow: inset 2px 0 0 #9ca3af, inset 0 0 0 1px #e2e8f0;
+}
+
+/* Stronger measure separation */
+.grid-cell[data-beat$=".1"] {
+  box-shadow: inset 3px 0 0 #374151, inset 0 0 0 1px #e2e8f0;
+}
+
+/* Make beat numbers more visible */
 .grid-cell[data-beat]:before {
+  /* Only show beat numbers for hi-hat row */
+  display: none;
+  font-weight: 600;
+  color: #374151;  /* Dark grey */
+}
+
+/* Show beat numbers only on hi-hat row */
+.beat-grid[data-instrument="H"] .grid-cell[data-beat]:before {
+  display: block;
   content: attr(data-beat);
   position: absolute;
   top: -20px;
   font-size: 0.8rem;
-  color: var(--text-muted);
 }
 
-/* Stronger visual separation between beats */
-.grid-cell:nth-child(4n+1) {
-  border-left: 2px solid var(--border);
+/* First beat of each measure more prominent */
+.grid-cell[data-beat^="1."]:before {
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .grid-cell.active {
@@ -657,6 +715,10 @@ input[name="measureCount"] {
 
 .grid-cell.active:hover {
   background: var(--primary-dark);
+}
+
+.grid-cell:active {
+  transform: scale(0.9);
 }
 
 /* Add time signature styles */
@@ -680,8 +742,8 @@ input[name="measureCount"] {
 .grid-scroll-container {
   overflow-x: auto;
   margin: 1rem 0;
-  padding-bottom: 0.5rem;  /* Space for scrollbar */
-  max-width: calc(100vw - 200px);  /* Leave room for instrument labels */
+  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .groove-grid {
@@ -694,18 +756,18 @@ input[name="measureCount"] {
 .beat-grid {
   display: grid;
   grid-template-columns: repeat(16, 1fr);
-  gap: 1px;
-  background: var(--border);
-  padding: 1px;
+  gap: 0;
   border-radius: 4px;
   position: relative;
+  flex: 1;
 }
 
 .grid-cell {
-  min-width: 24px;
-  height: 24px;
-  background: white;
+  width: 32px;
+  height: 32px;
+  background: #f8fafc;  /* Light grey background */
   cursor: pointer;
+  touch-action: manipulation;
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
@@ -713,6 +775,10 @@ input[name="measureCount"] {
   font-family: monospace;
   font-size: 1rem;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 4px;
+  margin: 1px;
+  box-shadow: inset 0 0 0 1px #e2e8f0;
 }
 
 /* Add beat numbers */
@@ -742,20 +808,174 @@ input[name="measureCount"] {
   background: var(--primary-dark);
 }
 
-/* Add time signature styles */
-.time-signature .time-inputs {
+.grid-cell:active {
+  transform: scale(0.9);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .grid-cell {
+    width: 40px;  /* Even larger for touch */
+    height: 40px;
+  }
+  
+  .instrument {
+    width: 3rem;  /* More space for labels */
+  }
+  
+  /* Stack form controls vertically */
+  .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  /* Make buttons larger */
+  button {
+    padding: 0.75rem 1rem;
+    min-height: 44px; /* iOS minimum */
+  }
+  
+  /* Adjust table layout */
+  .library-table td,
+  .setlist-table td {
+    padding: 1rem 0.5rem;
+  }
+  
+  /* Stack action buttons vertically */
+  td button {
+    display: block;
+    width: 100%;
+    margin: 0.5rem 0;
+  }
+  
+  /* Make staff notation fit */
+  #groove-preview,
+  .groove-preview {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2rem;
+    padding: 0.5rem 0;
+  }
+  
+  .main-content {
+    padding: 0 1rem;
+  }
+  
+  .card {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Adjust table layout for mobile */
+  .library-table,
+  .setlist-table {
+    display: block;  /* Allow tables to scroll horizontally */
+    overflow-x: auto;
+    font-size: 0.9rem;
+  }
+  
+  /* Hide notes column on mobile */
+  .library-table th:nth-child(2),
+  .library-table td:nth-child(2),
+  .setlist-table th:nth-child(3),
+  .setlist-table td:nth-child(3) {
+    display: none;
+  }
+  
+  /* Make action buttons more compact */
+  td button {
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    min-width: 44px;
+  }
+  
+  /* Compact controls */
+  .library-controls,
+  .setlist-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Add spacing between sections */
+  .card + .card {
+    margin-top: 2rem;
+  }
+}
+
+/* Drag and drop styles */
+.song-row.dragging {
+  opacity: 0.5;
+  cursor: move;
+}
+
+.song-row.drop-target {
+  border-top: 2px solid var(--primary);
+}
+
+.song-row {
+  cursor: grab;
+}
+
+.song-row:active {
+  cursor: grabbing;
+}
+
+/* Search styles */
+.search-container {
+  flex: 1;
+  max-width: 300px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  transition: all 0.15s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Update library controls to accommodate search */
+.library-controls {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
 }
 
-.time-signature input {
-  width: 3rem;
-  text-align: center;
+/* Search highlight styles */
+mark {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: inherit;
+  padding: 0.1em 0;
+  border-radius: 2px;
+  font-weight: 500;
 }
 
-.time-signature .divider {
-  font-size: 1.5rem;
-  font-weight: bold;
+/* Animate highlight appearance */
+mark {
+  animation: highlight-fade-in 0.2s ease-out;
+}
+
+@keyframes highlight-fade-in {
+  from {
+    background-color: rgba(99, 102, 241, 0.4);
+  }
+  to {
+    background-color: rgba(99, 102, 241, 0.2);
+  }
 }
 </style>

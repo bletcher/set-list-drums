@@ -9,20 +9,9 @@ window.state = {
 
 // Example groove patterns using a more intuitive syntax
 window.exampleGrooves = {
-  basic: `
-    H|x-x-x-x-x-x-x-x-|x-x-x-x-x-x-x-x-|
-    S|----x-------x---|----x-------x---|
-    K|x---------------|---------x-------|`,
-    
-  rock: `
-    H|x-x-x-x-x-x-x-x-|x-x-x-x-x-x-x-x-|
-    S|----x-------x---|----x-------x---|
-    K|x-------x-------|x-x-----x-------|`,
-    
-  funk: `
-    H|x-x-x-x-x-x-x-x-|x-x-x-x-x-x-x-x-|
-    S|-x------x-x-----|----x---x-x-----|
-    K|x---x-x---x-----|x-x---x---x-----|`
+  basic: (grooveString) => window.getExampleGroove('basic'),
+  rock: (grooveString) => window.getExampleGroove('rock'),
+  funk: (grooveString) => window.getExampleGroove('funk')
 };
 
 // Add this after defining exampleGrooves
@@ -46,7 +35,7 @@ const getDefaultSongs = () => [
     id: 3,
     title: "Funk Pattern",
     groove: window.exampleGrooves.funk,
-    notes: "Syncopated funk with ghost notes"
+    notes: "Syncopated funk with 16th notes on the hats"
   }
 ];
 
@@ -56,8 +45,7 @@ window.handleSubmit = (event) => {
   const form = event.target;
   const id = Date.now();
   
-  // Save all current settings with the song
-  const song = {
+  const newSong = {
     id,
     title: form.titleInput.value,
     groove: window.getCurrentGrooveString(),
@@ -71,8 +59,16 @@ window.handleSubmit = (event) => {
     }
   };
   
-  window.state.songLibrary.set(id, song);
-  localStorage.setItem('songLibrary', JSON.stringify([...window.state.songLibrary.values()]));
+  // Get all songs and add new one
+  const songs = [...window.state.songLibrary.values(), newSong]
+    .sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
+  
+  // Clear and rebuild library in sorted order
+  window.state.songLibrary.clear();
+  songs.forEach(song => window.state.songLibrary.set(song.id, song));
+  
+  // Save to localStorage
+  localStorage.setItem('songLibrary', JSON.stringify(songs));
   
   form.reset();
   renderLibrary();
@@ -91,34 +87,114 @@ window.handleSubmit = (event) => {
 //   }
 // };
 
-const renderLibrary = () => {
+// Helper function to highlight matching text
+const highlightMatch = (text, searchTerm) => {
+  if (!searchTerm) return text;
+  const regex = new RegExp(`(${searchTerm})`, 'gi');
+  return text.replace(regex, '<mark>$1</mark>');
+};
+
+const renderLibrary = (searchTerm = '') => {
   const tbody = document.querySelector('.library-table tbody');
   
-  // Generate unique IDs for each song
-  const songs = [...window.state.songLibrary.values()].map(song => ({
-    ...song,
-    previewId: `preview-${song.id}`
-  }));
+  // Generate unique IDs for each song, filter by search term, and sort alphabetically
+  const songs = [...window.state.songLibrary.values()]
+    .filter(song => 
+      !searchTerm || 
+      song.title.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()))
+    .map((song, index) => ({
+      ...song,
+      previewId: `preview-${song.id}`,
+      index,
+      highlightedTitle: highlightMatch(song.title, searchTerm)
+    }));
   
   // Render the HTML
   tbody.innerHTML = songs.map(song => `
-    <tr>
-      <td>${song.title}</td>
+    <tr draggable="true" data-index="${song.index}" class="song-row">
+      <td>${song.highlightedTitle}</td>
       <td>${song.notes || ''}</td>
       <td>
-        <button data-action="add-to-set" data-id="${song.id}" class="not-last">Add to Set</button>
-        <button data-action="load-groove" data-id="${song.id}" class="not-last">Load Groove</button>
+        <button data-action="add-to-set" data-id="${song.id}">Add to Set</button>
+        <button data-action="load-song" data-id="${song.id}">Load Song</button>
         <button data-action="delete-song" data-id="${song.id}">Delete</button>
       </td>
     </tr>
-    <tr class="groove-row">
+    <tr class="groove-row" data-index="${song.index}">
       <td colspan="3">
         ${renderGroovePreview(song.groove, song.previewId)}
       </td>
     </tr>
   `).join('');
 
-  // Render ABC notation for each preview using the song's settings
+  // Add drag and drop handlers
+  const rows = tbody.querySelectorAll('.song-row');
+  rows.forEach(row => {
+    row.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', row.dataset.index);
+      row.classList.add('dragging');
+    });
+
+    row.addEventListener('dragend', e => {
+      row.classList.remove('dragging');
+    });
+
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      const draggingRow = tbody.querySelector('.dragging');
+      if (draggingRow) {
+        const fromIndex = parseInt(draggingRow.dataset.index);
+        const toIndex = parseInt(row.dataset.index);
+        if (fromIndex !== toIndex) {
+          row.classList.add('drop-target');
+        }
+      }
+    });
+
+    row.addEventListener('dragleave', e => {
+      row.classList.remove('drop-target');
+    });
+
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      row.classList.remove('drop-target');
+      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+      const toIndex = parseInt(row.dataset.index);
+      if (fromIndex !== toIndex) {
+        // Reorder songs in library
+        const songs = [...window.state.songLibrary.values()];
+        const [movedSong] = songs.splice(fromIndex, 1);
+        songs.splice(toIndex, 0, movedSong);
+        
+        // Update library with new order
+        window.state.songLibrary.clear();
+        songs.forEach(song => window.state.songLibrary.set(song.id, song));
+        localStorage.setItem('songLibrary', JSON.stringify(songs));
+        
+        renderLibrary();
+      }
+    });
+  });
+
+  // Add hover handlers for groove rows
+  const grooveRows = tbody.querySelectorAll('.groove-row');
+  grooveRows.forEach(grooveRow => {
+    grooveRow.addEventListener('mouseenter', () => {
+      const index = grooveRow.dataset.index;
+      const songRow = tbody.querySelector(`.song-row[data-index="${index}"]`);
+      if (songRow) songRow.style.backgroundColor = '#f1f5f9';
+    });
+    
+    grooveRow.addEventListener('mouseleave', () => {
+      const index = grooveRow.dataset.index;
+      const songRow = tbody.querySelector(`.song-row[data-index="${index}"]`);
+      if (songRow) songRow.style.backgroundColor = '';
+    });
+  });
+
+  // Render ABC notation for each preview
   songs.forEach(song => {
     window.renderScore(song.groove, song.previewId, song.settings);
   });
@@ -139,37 +215,96 @@ const renderSetList = () => {
   
   // Render the HTML
   tbody.innerHTML = setlistSongs.map((song, index) => `
-    <tr>
+    <tr draggable="true" data-index="${index}" class="song-row">
       <td>${index + 1}</td>
       <td>${song.title}</td>
       <td>${song.notes || ''}</td>
       <td>
-        <button data-action="move-up" data-index="${index}" style="margin-right: 0.5rem">↑</button>
-        <button data-action="move-down" data-index="${index}" style="margin-right: 0.5rem">↓</button>
+        <button data-action="move-up" data-index="${index}">↑</button>
+        <button data-action="move-down" data-index="${index}">↓</button>
         <button data-action="remove-from-set" data-index="${index}">×</button>
       </td>
     </tr>
-    <tr class="groove-row">
+    <tr class="groove-row" data-index="${index}">
       <td colspan="4">
         ${renderGroovePreview(song.groove, song.previewId)}
       </td>
     </tr>
   `).join('');
 
-  // Render ABC notation for each preview using the song's settings
+  // Add drag and drop handlers
+  const rows = tbody.querySelectorAll('.song-row');
+  rows.forEach(row => {
+    row.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', row.dataset.index);
+      row.classList.add('dragging');
+    });
+
+    row.addEventListener('dragend', e => {
+      row.classList.remove('dragging');
+    });
+
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      const draggingRow = tbody.querySelector('.dragging');
+      if (draggingRow) {
+        const fromIndex = parseInt(draggingRow.dataset.index);
+        const toIndex = parseInt(row.dataset.index);
+        if (fromIndex !== toIndex) {
+          row.classList.add('drop-target');
+        }
+      }
+    });
+
+    row.addEventListener('dragleave', e => {
+      row.classList.remove('drop-target');
+    });
+
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      row.classList.remove('drop-target');
+      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+      const toIndex = parseInt(row.dataset.index);
+      if (fromIndex !== toIndex) {
+        // Move song in setlist
+        const [movedSong] = window.state.currentSetList.splice(fromIndex, 1);
+        window.state.currentSetList.splice(toIndex, 0, movedSong);
+        saveCurrentSetList();
+        renderSetList();
+      }
+    });
+  });
+
+  // Render ABC notation for each preview
   setlistSongs.forEach(song => {
     window.renderScore(song.groove, song.previewId, song.settings);
+  });
+
+  // Add hover handlers for groove rows
+  const grooveRows = tbody.querySelectorAll('.groove-row');
+  grooveRows.forEach(grooveRow => {
+    grooveRow.addEventListener('mouseenter', () => {
+      const index = grooveRow.dataset.index;
+      const songRow = tbody.querySelector(`.song-row[data-index="${index}"]`);
+      if (songRow) songRow.style.backgroundColor = '#f1f5f9';
+    });
+    
+    grooveRow.addEventListener('mouseleave', () => {
+      const index = grooveRow.dataset.index;
+      const songRow = tbody.querySelector(`.song-row[data-index="${index}"]`);
+      if (songRow) songRow.style.backgroundColor = '';
+    });
   });
 };
 
 // List Management Functions
-const addToSetList = (songId) => {
+window.addToSetList = (songId) => {
   window.state.currentSetList.push(songId);
   saveCurrentSetList();
   renderSetList();
 };
 
-const moveSong = (index, direction) => {
+window.moveSong = (index, direction) => {
   const newIndex = index + direction;
   if (newIndex < 0 || newIndex >= window.state.currentSetList.length) return;
   
@@ -181,7 +316,7 @@ const moveSong = (index, direction) => {
   renderSetList();
 };
 
-const removeFromSet = (index) => {
+window.removeFromSet = (index) => {
   window.state.currentSetList.splice(index, 1);
   saveCurrentSetList();
   renderSetList();
@@ -200,7 +335,7 @@ const deleteSong = (songId) => {
   }
 };
 
-const clearSetList = () => {
+window.clearSetList = () => {
   if (confirm('Are you sure you want to clear the current set list?')) {
     window.state.currentSetList = [];
     saveCurrentSetList();
@@ -225,10 +360,8 @@ const saveLibraryToFile = async () => {
     window.state.libraryFileName = handle.name;
     localStorage.setItem('libraryFileName', handle.name);
     renderFileNames();
-    alert('Library saved successfully!');
   } catch (error) {
     console.error('Error saving library:', error);
-    alert('Error saving library. See console for details.');
   }
 };
 
@@ -246,21 +379,15 @@ const loadLibraryFromFile = async () => {
     const libraryData = await file.text();
     const savedLibrary = JSON.parse(libraryData);
     
-    if (confirm('This will replace your current library. Continue?')) {
-      window.state.songLibrary.clear();
-      savedLibrary.forEach(song => {
-        window.state.songLibrary.set(song.id, song);
-      });
-      localStorage.setItem('songLibrary', JSON.stringify([...window.state.songLibrary.values()]));
-      window.state.libraryFileName = handle.name;
-      localStorage.setItem('libraryFileName', handle.name);
-      renderLibrary();
-      renderFileNames();
-      alert('Library loaded successfully!');
-    }
+    window.state.songLibrary.clear();
+    savedLibrary.forEach(song => window.state.songLibrary.set(song.id, song));
+    localStorage.setItem('songLibrary', JSON.stringify([...window.state.songLibrary.values()]));
+    window.state.libraryFileName = handle.name;
+    localStorage.setItem('libraryFileName', handle.name);
+    renderLibrary();
+    renderFileNames();
   } catch (error) {
     console.error('Error loading library:', error);
-    alert('Error loading library. See console for details.');
   }
 };
 
@@ -280,10 +407,8 @@ const saveSetListToFile = async () => {
     window.state.setListFileName = handle.name;
     localStorage.setItem('setListFileName', handle.name);
     renderFileNames();
-    alert('Set list saved successfully!');
   } catch (error) {
     console.error('Error saving set list:', error);
-    alert('Error saving set list. See console for details.');
   }
 };
 
@@ -301,17 +426,14 @@ const loadSetListFromFile = async () => {
     const setListData = await file.text();
     const savedSetList = JSON.parse(setListData);
     
-    if (confirm('This will replace your current set list. Continue?')) {
-      window.state.currentSetList = savedSetList;
-      localStorage.setItem('currentSetList', JSON.stringify(window.state.currentSetList));
-      window.state.setListFileName = handle.name;
-      renderSetList();
-      renderFileNames();
-      alert('Set list loaded successfully!');
-    }
+    window.state.currentSetList = savedSetList;
+    localStorage.setItem('currentSetList', JSON.stringify(window.state.currentSetList));
+    window.state.setListFileName = handle.name;
+    localStorage.setItem('setListFileName', handle.name);
+    renderSetList();
+    renderFileNames();
   } catch (error) {
     console.error('Error loading set list:', error);
-    alert('Error loading set list. See console for details.');
   }
 };
 
@@ -343,15 +465,23 @@ const renderFileNames = () => {
 };
 
 // Add this function to handle grid cell clicks
-const setupGridClickHandlers = () => {
+window.setupGridClickHandlers = () => {
   document.querySelectorAll('.beat-grid').forEach(grid => {
-    grid.addEventListener('click', e => {
+    // Remove any existing click handlers
+    const newGrid = grid.cloneNode(true);
+    grid.parentNode.replaceChild(newGrid, grid);
+    
+    // Add new click handler
+    newGrid.addEventListener('click', e => {
       const cell = e.target.closest('.grid-cell');
       if (!cell) return;
       
       cell.classList.toggle('active');
       cell.textContent = cell.classList.contains('active') ? 'x' : '-';
-      updateGrooveFromGrid();
+      
+      // Update ABC notation and score
+      const grooveString = window.getCurrentGrooveString();
+      window.renderScore(grooveString);
     });
   });
 };
@@ -670,6 +800,9 @@ const updateGrooveFromGrid = () => {
 const updateGridFromGroove = (grooveString) => {
   console.log('Updating grid from groove:', grooveString);
   const lines = grooveString.trim().split('\n');
+  const beatsPerBar = parseInt(document.querySelector('[name="beatsPerBar"]').value);
+  const beatUnit = parseInt(document.querySelector('[name="beatUnit"]').value);
+  const noteDivision = parseInt(document.querySelector('[name="noteDivision"]').value);
   const measureCount = parseInt(document.querySelector('[name="measureCount"]').value) || 1;
   
   // Clear all cells first
@@ -677,6 +810,10 @@ const updateGridFromGroove = (grooveString) => {
     cell.classList.remove('active');
     cell.textContent = '-';
   });
+  
+  // Calculate how many cells should be in one measure
+  const subdivisions = noteDivision / beatUnit;
+  const cellsPerMeasure = beatsPerBar * subdivisions;
   
   lines.forEach(line => {
     const [instrument, pattern] = line.trim().split('|');
@@ -688,18 +825,13 @@ const updateGridFromGroove = (grooveString) => {
     const cells = grid.querySelectorAll('.grid-cell');
     const basePattern = pattern.replace(/\|/g, '').split('');
     
-    // Repeat pattern for each measure
-    for (let m = 0; m < measureCount; m++) {
-      basePattern.forEach((note, i) => {
-        const cellIndex = m * basePattern.length + i;
-        if (cellIndex < cells.length) {
-          if (note === 'x') {
-            cells[cellIndex].classList.add('active');
-            cells[cellIndex].textContent = 'x';
-          }
-        }
-      });
-    }
+    // Apply pattern to all cells
+    basePattern.forEach((note, i) => {
+      if (i < cells.length && note === 'x') {
+        cells[i].classList.add('active');
+        cells[i].textContent = 'x';
+      }
+    });
   });
 };
 
@@ -725,10 +857,29 @@ const renderGroove = (grooveString, elementId) => {
 };
 
 // Update the loadGroove function
-const loadGroove = (songId) => {
+window.loadSong = (songId) => {
   const song = window.state.songLibrary.get(songId);
-  if (song?.groove) {
-    updateGridFromGroove(song.groove);
+  if (!song) return;
+
+  // Load title and notes
+  document.querySelector('[name="titleInput"]').value = song.title;
+  document.querySelector('[name="notesInput"]').value = song.notes || '';
+
+  // Load settings if they exist
+  if (song.settings) {
+    document.querySelector('[name="bpmInput"]').value = song.settings.bpm;
+    document.querySelector('[name="beatsPerBar"]').value = song.settings.beatsPerBar;
+    document.querySelector('[name="beatUnit"]').value = song.settings.beatUnit;
+    document.querySelector('[name="noteDivision"]').value = song.settings.noteDivision;
+    document.querySelector('[name="measureCount"]').value = song.settings.measureCount;
+  }
+
+  // Update time signature and grid first
+  window.updateTimeSignature();
+  
+  // Then load the groove pattern
+  if (song.groove) {
+    window.updateGridFromGroove(song.groove);
     window.renderScore(song.groove);
   }
 };
@@ -754,50 +905,38 @@ window.renderScore = renderScore;
 window.setupGridClickHandlers = setupGridClickHandlers;
 
 // Update initialize function to ensure grid is ready
-window.initialize = async () => {
-  // Wait for DOM to be ready
-  if (document.readyState === 'loading') {
-    await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+window.initialize = () => {
+  // Load saved library from localStorage
+  const savedLibrary = localStorage.getItem('songLibrary');
+  if (savedLibrary) {
+    const songs = JSON.parse(savedLibrary);
+    songs.forEach(song => window.state.songLibrary.set(song.id, song));
+  } else {
+    // Load default songs if no saved library
+    getDefaultSongs().forEach(song => window.state.songLibrary.set(song.id, song));
   }
 
-  try {
-    // Initialize grids first
-    initializeGrids();
-    
-    // Load filenames
-    window.state.libraryFileName = localStorage.getItem('libraryFileName');
-    window.state.setListFileName = localStorage.getItem('setListFileName');
-    
-    // Load library data
-    const savedData = localStorage.getItem('songLibrary');
-    const savedLibrary = JSON.parse(savedData || '[]');
-    
-    if (savedLibrary.length === 0) {
-      getDefaultSongs().forEach(song => {
-        window.state.songLibrary.set(song.id, song);
-      });
-      localStorage.setItem('songLibrary', JSON.stringify([...window.state.songLibrary.values()]));
-      window.state.libraryFileName = 'songLibrary.json';
-      localStorage.setItem('libraryFileName', 'songLibrary.json');
-    } else {
-      savedLibrary.forEach(song => {
-        window.state.songLibrary.set(song.id, song);
-      });
-      if (!window.state.libraryFileName) {
-        window.state.libraryFileName = 'songLibrary.json';
-        localStorage.setItem('libraryFileName', 'songLibrary.json');
-      }
-    }
-    
-    const savedSetList = JSON.parse(localStorage.getItem('currentSetList') || '[]');
-    window.state.currentSetList = savedSetList;
-    
-    renderLibrary();
-    renderSetList();
-    renderFileNames();
-  } catch (error) {
-    console.error('Error initializing:', error);
+  // Load saved setlist from localStorage
+  const savedSetList = localStorage.getItem('currentSetList');
+  if (savedSetList) {
+    window.state.currentSetList = JSON.parse(savedSetList);
   }
+
+  // Initialize grid
+  window.initializeGrids();
+  
+  // Set up search handler
+  const searchInput = document.getElementById('library-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      renderLibrary(e.target.value.trim());
+    });
+  }
+  
+  // Render initial state
+  renderLibrary();
+  renderSetList();
+  renderFileNames();
 };
 
 // Add these new functions
@@ -811,10 +950,15 @@ window.updateTimeSignature = () => {
   const subdivisions = noteDivision / beatUnit;  // How many divisions per beat
   const totalCells = beatsPerBar * subdivisions * measureCount;  // Multiply by measure count
   
+  // Save current pattern before reinitializing grid
+  const currentGroove = window.getCurrentGrooveString();
+  
   // Reinitialize grids with new size
   document.querySelectorAll('.beat-grid').forEach(grid => {
     grid.innerHTML = '';
     grid.style.gridTemplateColumns = `repeat(${totalCells}, 1fr)`;
+    // Set CSS variable for measure count
+    grid.style.setProperty('--measure-count', measureCount);
     
     // Create cells
     for (let i = 0; i < totalCells; i++) {
@@ -849,17 +993,34 @@ window.updateTimeSignature = () => {
   // Reattach click handlers
   window.setupGridClickHandlers();
   
-  // Update ABC notation
-  const grooveString = window.getCurrentGrooveString();
-  if (grooveString) {
-    const abcString = window.generateAbcNotation(grooveString);
-    window.renderScore(grooveString);
+  // Restore pattern if there was one
+  if (currentGroove) {
+    window.updateGridFromGroove(currentGroove);
+    
+    // Get the updated groove string after grid is updated
+    const updatedGroove = window.getCurrentGrooveString();
+    
+    // Update ABC notation and score with the current grid state
+    window.renderScore(updatedGroove);
+  } else {
+    // If no pattern, still update the score to show empty measures
+    window.renderScore(window.getCurrentGrooveString());
   }
 };
 
 window.updateNoteDivision = (value) => {
   // Update time signature to trigger grid update
   window.updateTimeSignature();
+  
+  // Update existing groove pattern to match new division
+  const grooveString = window.getCurrentGrooveString();
+  if (grooveString) {
+    window.updateGridFromGroove(grooveString);
+    window.renderScore(grooveString);
+  }
+  
+  // Make sure click handlers are properly attached
+  window.setupGridClickHandlers();
 };
 
 // Update generateAbcNotation to include time signature
@@ -939,4 +1100,60 @@ V:1 perc stafflines=5 stem=up
 window.initializeGrids = () => {
   console.log('Initializing grids...');
   window.updateTimeSignature();
-}; 
+};
+
+// Update example groove patterns to use a function that generates patterns based on current settings
+window.getExampleGroove = (pattern) => {
+  const beatUnit = parseInt(document.querySelector('[name="beatUnit"]').value);
+  const noteDivision = parseInt(document.querySelector('[name="noteDivision"]').value);
+  const measureCount = parseInt(document.querySelector('[name="measureCount"]').value) || 1;
+  const subdivisions = noteDivision / beatUnit;
+  
+  // Define base patterns for 16th notes
+  const patterns = {
+    basic: {
+      H: 'x-x-x-x-x-x-x-x-',
+      S: '----x-------x---',
+      K: 'x-------x-------'
+    },
+    rock: {
+      H: 'x-x-x-x-x-x-x-x-',
+      S: '----x-------x---',
+      K: 'x-----x-x-----x-'
+    },
+    funk: {
+      H: 'xxxxxxxxxxxxxxxx',
+      S: '-x--x-------x---',
+      K: 'x--x--x--x-----x'
+    }
+  };
+
+  // Convert pattern based on note division
+  const convertPattern = (pattern16) => {
+    if (noteDivision === 16) return pattern16;
+    if (noteDivision === 8) {
+      return pattern16.match(/.{2}/g).map(pair => pair[0]).join('');
+    }
+    if (noteDivision === 4) {
+      return pattern16.match(/.{4}/g).map(group => group[0]).join('');
+    }
+    return pattern16;
+  };
+
+  const basePattern = patterns[pattern];
+  if (!basePattern) return '';
+
+  // Convert and repeat pattern for each measure
+  const convertedH = convertPattern(basePattern.H).repeat(measureCount);
+  const convertedS = convertPattern(basePattern.S).repeat(measureCount);
+  const convertedK = convertPattern(basePattern.K).repeat(measureCount);
+
+  return `
+    H|${convertedH}|
+    S|${convertedS}|
+    K|${convertedK}|`;
+};
+
+// Make functions available globally
+window.saveLibraryToFile = saveLibraryToFile;
+window.loadLibraryFromFile = loadLibraryFromFile; 
