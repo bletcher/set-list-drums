@@ -78,19 +78,6 @@
     }
   },
   {
-    "id": 1737822690220,
-    "title": "Boogie on",
-    "groove": "H|xxxxxxxxxxxxxxxx|\nS|-x--x-------x---|\nK|x--x--x--x-----x|\n",
-    "notes": "",
-    "settings": {
-      "bpm": "105",
-      "beatsPerBar": "4",
-      "beatUnit": "4",
-      "noteDivision": "16",
-      "measureCount": "1"
-    }
-  },
-  {
     "id": 1737822800344,
     "title": "Boogie on",
     "groove": "H|x-xxx-xxx-xxx-xx|\nS|----x-------x---|\nK|x--x--x---x---x-|\n",
@@ -117,19 +104,6 @@
     }
   },
   {
-    "id": 1737823436499,
-    "title": "Love and happiness",
-    "groove": "H|xxxxxxxx|\nS|--x---x-|\nK|xx--xx--|\n",
-    "notes": "Occasional open hats on 4+",
-    "settings": {
-      "bpm": "96",
-      "beatsPerBar": "4",
-      "beatUnit": "4",
-      "noteDivision": "8",
-      "measureCount": "1"
-    }
-  },
-  {
     "id": 1737823865694,
     "title": "Little Walter",
     "groove": "H|x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-|\nS|----x--x----x-------x--x----x---|\nK|x-xx------x----xxx-x------x-----|\n",
@@ -140,6 +114,19 @@
       "beatUnit": "4",
       "noteDivision": "16",
       "measureCount": "2"
+    }
+  },
+  {
+    "id": 1737823436499,
+    "title": "Love and happiness",
+    "groove": "H|xxxxxxxx|\nS|--x---x-|\nK|xx--xx--|\n",
+    "notes": "Occasional open hats on 4+",
+    "settings": {
+      "bpm": "96",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "8",
+      "measureCount": "1"
     }
   }
 ]

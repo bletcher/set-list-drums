@@ -165,7 +165,13 @@ function setupEventListeners() {
         <label>Notes:</label>
         <textarea name="notesInput" rows="2" 
           placeholder="Add any notes about the song or groove..."></textarea>
-  </div>
+      </div>
+      <div class="form-group">
+        <label>External Link:</label>
+        <input type="url" name="linkInput" 
+          placeholder="https://..." 
+          class="textarea-style" />
+      </div>
       <button type="submit">Add Song</button>
     </form>
   </div>
@@ -189,7 +195,7 @@ function setupEventListeners() {
         <button data-action="save-library">Save Library</button>
         <button data-action="load-library">Load Library</button>
         <input type="file" id="library-file-input" style="display: none" accept=".json">
-      </div>
+  </div>
       <table class="library-table">
         <thead>
           <tr>
@@ -213,7 +219,7 @@ function setupEventListeners() {
         <input type="file" id="setlist-file-input" style="display: none" accept=".json">
         <button data-action="print">Print</button>
         <button data-action="clear">Clear</button>
-      </div>
+  </div>
       <table class="setlist-table">
         <thead>
           <tr>
@@ -977,5 +983,36 @@ mark {
   to {
     background-color: rgba(99, 102, 241, 0.2);
   }
+}
+
+/* Add to the existing <style> section */
+.textarea-style {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-family: inherit;
+  width: 100%;
+  min-height: 42px;
+  transition: border-color 0.15s ease;
+}
+
+.textarea-style:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Update the existing button margins */
+.library-table button,
+.setlist-table button {
+  margin-right: 2px;  /* Increase to 2px space between buttons */
+  margin-bottom: 2px;  /* Increase to 2px space below buttons */
+}
+
+/* Keep the last button rule unchanged */
+.library-table button:last-child,
+.setlist-table button:last-child {
+  margin-right: 0;
 }
 </style>

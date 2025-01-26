@@ -7,34 +7,24 @@ window.state = {
   setListFileName: localStorage.getItem('setListFileName')
 };
 
-// Example groove patterns using a more intuitive syntax
-window.exampleGrooves = {
-  basic: (grooveString) => window.getExampleGroove('basic'),
-  rock: (grooveString) => window.getExampleGroove('rock'),
-  funk: (grooveString) => window.getExampleGroove('funk')
-};
-
-// Add this after defining exampleGrooves
-console.log('Example grooves loaded:', Object.keys(window.exampleGrooves));
-
 // Default songs
 const getDefaultSongs = () => [
   {
     id: 1,
     title: "Basic Rock",
-    groove: window.exampleGrooves.basic,
+    groove: window.getExampleGroove('basic'),
     notes: "Simple backbeat pattern"
   },
   {
     id: 2,
     title: "Rock Groove",
-    groove: window.exampleGrooves.rock,
+    groove: window.getExampleGroove('rock'),
     notes: "Rock pattern with kick variations"
   },
   {
     id: 3,
     title: "Funk Pattern",
-    groove: window.exampleGrooves.funk,
+    groove: window.getExampleGroove('funk'),
     notes: "Syncopated funk with 16th notes on the hats"
   }
 ];
@@ -45,11 +35,16 @@ window.handleSubmit = (event) => {
   const form = event.target;
   const id = Date.now();
   
+  // Get the current groove pattern
+  const groove = window.getCurrentGrooveString();
+  
+  // Create new song with all settings
   const newSong = {
     id,
     title: form.titleInput.value,
-    groove: window.getCurrentGrooveString(),
+    groove: groove,  // Store the actual groove pattern
     notes: form.notesInput.value,
+    link: form.linkInput.value,
     settings: {
       bpm: form.bpmInput.value,
       beatsPerBar: form.beatsPerBar.value,
@@ -70,7 +65,9 @@ window.handleSubmit = (event) => {
   // Save to localStorage
   localStorage.setItem('songLibrary', JSON.stringify(songs));
   
+  // Reset form and grid
   form.reset();
+  window.updateTimeSignature();  // Reset grid to default state
   renderLibrary();
 };
 
@@ -120,6 +117,7 @@ const renderLibrary = (searchTerm = '') => {
         <button data-action="add-to-set" data-id="${song.id}">Add to Set</button>
         <button data-action="load-song" data-id="${song.id}">Load Song</button>
         <button data-action="delete-song" data-id="${song.id}">Delete</button>
+        ${song.link ? `<button onclick="window.open('${song.link}', '_blank', 'noopener')">Link</button>` : ''}
       </td>
     </tr>
     <tr class="groove-row" data-index="${song.index}">
@@ -223,6 +221,7 @@ const renderSetList = () => {
         <button data-action="move-up" data-index="${index}">↑</button>
         <button data-action="move-down" data-index="${index}">↓</button>
         <button data-action="remove-from-set" data-index="${index}">×</button>
+        ${song.link ? `<button onclick="window.open('${song.link}', '_blank', 'noopener')">Link</button>` : ''}
       </td>
     </tr>
     <tr class="groove-row" data-index="${index}">
@@ -344,71 +343,223 @@ window.clearSetList = () => {
 };
 
 // File System Functions
+const downloadJSON = (data, filename) => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+// Add this helper function to check and request permissions
+const requestFileSystemAccess = async () => {
+  try {
+    // Check if API is available
+    if (!('showOpenFilePicker' in window)) {
+      return false;
+    }
+
+    // Check if we're in a secure context
+    if (!window.isSecureContext) {
+      console.log('File System Access API requires a secure context (HTTPS)');
+      return false;
+    }
+
+    // Request permission by showing a picker
+    try {
+      await window.showOpenFilePicker({
+        multiple: false,
+        types: [{
+          description: 'JSON File',
+          accept: {'application/json': ['.json']}
+        }]
+      });
+      return true;
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        // User cancelled, but API is available
+        return true;
+      }
+      return false;
+    }
+  } catch (err) {
+    console.log('File System Access not available:', err);
+    return false;
+  }
+};
+
+// Update saveLibraryToFile to use the permission check
 const saveLibraryToFile = async () => {
   try {
-    const handle = await window.showSaveFilePicker({
-      suggestedName: 'songLibrary.json',
-      types: [{
-        description: 'JSON File',
-        accept: {'application/json': ['.json']},
-      }],
-    });
+    const data = [...window.state.songLibrary.values()];
+    const filename = window.state.libraryFileName || 'songLibrary.json';
+
+    // Check if we can use modern API
+    const hasFileAccess = await requestFileSystemAccess();
     
-    const writable = await handle.createWritable();
-    await writable.write(JSON.stringify([...window.state.songLibrary.values()], null, 2));
-    await writable.close();
-    window.state.libraryFileName = handle.name;
-    localStorage.setItem('libraryFileName', handle.name);
+    if (hasFileAccess) {
+      try {
+        const options = {
+          suggestedName: filename,
+          types: [{
+            description: 'JSON File',
+            accept: {'application/json': ['.json']},
+          }],
+          excludeAcceptAllOption: false
+        };
+
+        const handle = await window.showSaveFilePicker(options);
+        const writable = await handle.createWritable();
+        await writable.write(JSON.stringify(data, null, 2));
+        await writable.close();
+        
+        window.state.libraryFileName = handle.name;
+        localStorage.setItem('libraryFileName', handle.name);
+        renderFileNames();
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return; // User cancelled
+        console.error('Modern save failed, falling back:', err);
+      }
+    }
+
+    // Fallback to traditional download
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    window.state.libraryFileName = filename;
+    localStorage.setItem('libraryFileName', filename);
     renderFileNames();
   } catch (error) {
     console.error('Error saving library:', error);
+    alert('Error saving file. Please try again.');
   }
 };
 
 const loadLibraryFromFile = async () => {
   try {
-    const [handle] = await window.showOpenFilePicker({
-      types: [{
-        description: 'JSON File',
-        accept: {'application/json': ['.json']},
-      }],
-      multiple: false
-    });
+    // Try modern File System Access API first
+    if ('showOpenFilePicker' in window) {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [{
+            description: 'JSON File',
+            accept: {'application/json': ['.json']},
+          }],
+          multiple: false
+        });
+        
+        const file = await handle.getFile();
+        const text = await file.text();
+        const savedLibrary = JSON.parse(text);
+        
+        window.state.songLibrary.clear();
+        savedLibrary.forEach(song => window.state.songLibrary.set(song.id, song));
+        localStorage.setItem('songLibrary', JSON.stringify([...window.state.songLibrary.values()]));
+        window.state.libraryFileName = handle.name;
+        localStorage.setItem('libraryFileName', handle.name);
+        renderLibrary();
+        renderFileNames();
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return; // User cancelled
+        console.error('Modern load failed, falling back:', err);
+      }
+    }
+
+    // Fallback to traditional file input
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
     
-    const file = await handle.getFile();
-    const libraryData = await file.text();
-    const savedLibrary = JSON.parse(libraryData);
+    input.onchange = async (e) => {
+      try {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const text = await file.text();
+        const savedLibrary = JSON.parse(text);
+        
+        window.state.songLibrary.clear();
+        savedLibrary.forEach(song => window.state.songLibrary.set(song.id, song));
+        localStorage.setItem('songLibrary', JSON.stringify([...window.state.songLibrary.values()]));
+        window.state.libraryFileName = file.name;
+        localStorage.setItem('libraryFileName', file.name);
+        renderLibrary();
+        renderFileNames();
+      } catch (error) {
+        console.error('Error loading library:', error);
+        alert('Could not load file. Please make sure it is a valid song library file.');
+      }
+    };
     
-    window.state.songLibrary.clear();
-    savedLibrary.forEach(song => window.state.songLibrary.set(song.id, song));
-    localStorage.setItem('songLibrary', JSON.stringify([...window.state.songLibrary.values()]));
-    window.state.libraryFileName = handle.name;
-    localStorage.setItem('libraryFileName', handle.name);
-    renderLibrary();
-    renderFileNames();
+    input.click();
   } catch (error) {
     console.error('Error loading library:', error);
+    alert('Error loading file. Please try again.');
   }
 };
 
 const saveSetListToFile = async () => {
   try {
-    const handle = await window.showSaveFilePicker({
-      suggestedName: 'setList.json',
-      types: [{
-        description: 'JSON File',
-        accept: {'application/json': ['.json']},
-      }],
-    });
-    
+    let existingHandle = null;
+    if (window.state.setListFileHandle) {
+      existingHandle = window.state.setListFileHandle;
+    }
+
+    let handle;
+    if ('showSaveFilePicker' in window) {
+      try {
+        const options = {
+          suggestedName: window.state.setListFileName || 'setList.json',
+          types: [{
+            description: 'JSON File',
+            accept: {'application/json': ['.json']},
+          }],
+          excludeAcceptAllOption: false,
+          multiple: false
+        };
+
+        if (existingHandle) {
+          options.startIn = await existingHandle.getParent();
+        }
+
+        handle = await window.showSaveFilePicker(options);
+        window.state.setListFileHandle = handle;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        if (err.name === 'SecurityError' || err.name === 'NotAllowedError') {
+          downloadJSON(window.state.currentSetList, 'setList.json');
+          return;
+        }
+        throw err;
+      }
+    } else {
+      downloadJSON(window.state.currentSetList, 'setList.json');
+      return;
+    }
+
     const writable = await handle.createWritable();
     await writable.write(JSON.stringify(window.state.currentSetList, null, 2));
     await writable.close();
+    
     window.state.setListFileName = handle.name;
     localStorage.setItem('setListFileName', handle.name);
     renderFileNames();
   } catch (error) {
     console.error('Error saving set list:', error);
+    downloadJSON(window.state.currentSetList, 'setList.json');
   }
 };
 
@@ -449,18 +600,16 @@ const saveCurrentSetList = () => {
 // Add new function to render file names
 const renderFileNames = () => {
   const libraryFilename = document.querySelector('.library-title .filename');
-  const setListFilename = document.querySelector('.setlist-title .filename');
+  const setlistFilename = document.querySelector('.setlist-title .filename');
   
-  if (window.state.libraryFileName) {
-    libraryFilename.textContent = window.state.libraryFileName;
-  } else {
-    libraryFilename.textContent = '';
+  if (libraryFilename) {
+    libraryFilename.textContent = window.state.libraryFileName ? 
+      ` (${window.state.libraryFileName})` : '';
   }
   
-  if (window.state.setListFileName) {
-    setListFilename.textContent = window.state.setListFileName;
-  } else {
-    setListFilename.textContent = '';
+  if (setlistFilename) {
+    setlistFilename.textContent = window.state.setListFileName ? 
+      ` (${window.state.setListFileName})` : '';
   }
 };
 
@@ -661,23 +810,20 @@ V:1 perc stafflines=5 stem=up
 
 // Add this new function to get the current groove pattern from the grid
 window.getCurrentGrooveString = () => {
-  const instruments = ['H', 'S', 'K'];
-  let grooveString = '';
+  const grids = document.querySelectorAll('.beat-grid');
+  let pattern = '';
   
-  instruments.forEach(instrument => {
-    const grid = document.querySelector(`.beat-grid[data-instrument="${instrument}"]`);
+  grids.forEach(grid => {
+    const instrument = grid.dataset.instrument;
     const cells = grid.querySelectorAll('.grid-cell');
-    grooveString += `${instrument}|`;
-    
-    // Convert grid to text pattern
-    const pattern = Array.from(cells)
-      .map(cell => cell.classList.contains('active') ? 'x' : '-')
-      .join('');
-    
-    grooveString += `${pattern}|\n`;
+    pattern += `${instrument}|`;
+    cells.forEach(cell => {
+      pattern += cell.classList.contains('active') ? 'x' : '-';
+    });
+    pattern += '|\n';
   });
   
-  return grooveString;
+  return pattern;
 };
 
 // Update the updateBPM function
@@ -861,9 +1007,10 @@ window.loadSong = (songId) => {
   const song = window.state.songLibrary.get(songId);
   if (!song) return;
 
-  // Load title and notes
+  // Load title, notes, and link
   document.querySelector('[name="titleInput"]').value = song.title;
   document.querySelector('[name="notesInput"]').value = song.notes || '';
+  document.querySelector('[name="linkInput"]').value = song.link || '';
 
   // Load settings if they exist
   if (song.settings) {
@@ -885,8 +1032,11 @@ window.loadSong = (songId) => {
 };
 
 // Update the renderGroovePreview function
-const renderGroovePreview = (grooveString, uniqueId) => {
-  if (!grooveString) return '';
+const renderGroovePreview = (groove, uniqueId) => {
+  if (!groove) return '';
+  
+  // Handle both string patterns and function patterns
+  const grooveString = typeof groove === 'function' ? groove() : groove;
   
   return `
     <div class="groove-preview-container">
@@ -904,16 +1054,27 @@ window.renderGroove = renderGroove;
 window.renderScore = renderScore;
 window.setupGridClickHandlers = setupGridClickHandlers;
 
-// Update initialize function to ensure grid is ready
-window.initialize = () => {
+// Move all initialization into a single function
+const initializeApp = () => {
+  // Initialize state
+  window.state = {
+    songLibrary: new Map(),
+    currentSetList: [],
+    setLists: [],
+    libraryFileName: localStorage.getItem('libraryFileName'),
+    setListFileName: localStorage.getItem('setListFileName')
+  };
+
   // Load saved library from localStorage
   const savedLibrary = localStorage.getItem('songLibrary');
   if (savedLibrary) {
     const songs = JSON.parse(savedLibrary);
     songs.forEach(song => window.state.songLibrary.set(song.id, song));
-  } else {
+  } else if (window.state.songLibrary.size === 0) {
     // Load default songs if no saved library
     getDefaultSongs().forEach(song => window.state.songLibrary.set(song.id, song));
+    // Save default songs to localStorage
+    localStorage.setItem('songLibrary', JSON.stringify([...window.state.songLibrary.values()]));
   }
 
   // Load saved setlist from localStorage
@@ -925,13 +1086,8 @@ window.initialize = () => {
   // Initialize grid
   window.initializeGrids();
   
-  // Set up search handler
-  const searchInput = document.getElementById('library-search');
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      renderLibrary(e.target.value.trim());
-    });
-  }
+  // Set up event handlers
+  setupEventHandlers();
   
   // Render initial state
   renderLibrary();
@@ -939,7 +1095,71 @@ window.initialize = () => {
   renderFileNames();
 };
 
-// Add these new functions
+// Separate function for setting up event handlers
+const setupEventHandlers = () => {
+  // Set up search handler
+  const searchInput = document.getElementById('library-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      renderLibrary(e.target.value.trim());
+    });
+  }
+
+  // Set up form submission handler
+  document.querySelector('.song-form')?.addEventListener('submit', window.handleSubmit);
+
+  // Set up library table actions
+  document.querySelector('.library-table')?.addEventListener('click', e => {
+    const button = e.target.closest('button');
+    if (!button) return;
+    
+    const { action, id } = button.dataset;
+    if (action === 'add-to-set') window.addToSetList(parseInt(id));
+    if (action === 'delete-song') deleteSong(parseInt(id));
+    if (action === 'load-song') window.loadSong(parseInt(id));
+  });
+
+  // Set up setlist table actions
+  document.querySelector('.setlist-table')?.addEventListener('click', e => {
+    const button = e.target.closest('button');
+    if (!button) return;
+    
+    const { action, index } = button.dataset;
+    if (action === 'move-up') window.moveSong(parseInt(index), -1);
+    if (action === 'move-down') window.moveSong(parseInt(index), 1);
+    if (action === 'remove-from-set') window.removeFromSet(parseInt(index));
+  });
+
+  // Set up file action handlers
+  document.querySelector('[data-action="save-library"]')?.addEventListener('click', window.saveLibraryToFile);
+  document.querySelector('[data-action="load-library"]')?.addEventListener('click', window.loadLibraryFromFile);
+  document.querySelector('[data-action="clear"]')?.addEventListener('click', window.clearSetList);
+
+  // Set up example groove buttons
+  document.querySelector('.groove-examples')?.addEventListener('click', e => {
+    const button = e.target.closest('button');
+    if (!button) return;
+    
+    const pattern = button.dataset.pattern;
+    if (pattern) {
+      const groove = window.getExampleGroove(pattern);
+      window.updateGridFromGroove(groove);
+      window.renderScore(groove);
+    }
+  });
+};
+
+// Remove duplicate initialization code
+window.initialize = initializeApp;
+
+// Wait for DOM to be fully loaded before initializing
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  initializeApp();
+}
+
+// Add these functions back
 window.updateTimeSignature = () => {
   const beatsPerBar = parseInt(document.querySelector('[name="beatsPerBar"]').value);
   const beatUnit = parseInt(document.querySelector('[name="beatUnit"]').value);
@@ -978,30 +1198,13 @@ window.updateTimeSignature = () => {
     }
   });
   
-  // Update grid styling for beat and measure separation
-  const style = document.createElement('style');
-  style.textContent = `
-    .grid-cell:nth-child(${subdivisions}n+1) {
-      border-left: 2px solid var(--border);
-    }
-    .grid-cell:nth-child(${beatsPerBar * subdivisions}n+1) {
-      border-left: 4px solid var(--border);
-    }
-  `;
-  document.head.appendChild(style);
-  
   // Reattach click handlers
   window.setupGridClickHandlers();
   
   // Restore pattern if there was one
   if (currentGroove) {
     window.updateGridFromGroove(currentGroove);
-    
-    // Get the updated groove string after grid is updated
-    const updatedGroove = window.getCurrentGrooveString();
-    
-    // Update ABC notation and score with the current grid state
-    window.renderScore(updatedGroove);
+    window.renderScore(currentGroove);
   } else {
     // If no pattern, still update the score to show empty measures
     window.renderScore(window.getCurrentGrooveString());
@@ -1023,7 +1226,6 @@ window.updateNoteDivision = (value) => {
   window.setupGridClickHandlers();
 };
 
-// Update generateAbcNotation to include time signature
 window.generateAbcNotation = (grooveString) => {
   const bpm = document.querySelector('[name="bpmInput"]')?.value || '120';
   const beatsPerBar = document.querySelector('[name="beatsPerBar"]')?.value || '4';
@@ -1071,7 +1273,7 @@ V:1 perc stafflines=5 stem=up
     const chord = [
       voices.H[i] ? '!style=x!g^' : 'z',  // Hi-hat
       voices.S[i] ? 'c^' : 'z',           // Snare
-      voices.K[i] ? 'D^' : 'z'            // Kick (changed from F to D)
+      voices.K[i] ? 'D^' : 'z'            // Kick
     ];
     notes.push(`[${chord.join('')}]`);
     
@@ -1094,12 +1296,6 @@ V:1 perc stafflines=5 stem=up
   
   abcString += notes.join('') + '|';
   return abcString;
-};
-
-// Update initializeGrids to use time signature
-window.initializeGrids = () => {
-  console.log('Initializing grids...');
-  window.updateTimeSignature();
 };
 
 // Update example groove patterns to use a function that generates patterns based on current settings
@@ -1152,8 +1348,4 @@ window.getExampleGroove = (pattern) => {
     H|${convertedH}|
     S|${convertedS}|
     K|${convertedK}|`;
-};
-
-// Make functions available globally
-window.saveLibraryToFile = saveLibraryToFile;
-window.loadLibraryFromFile = loadLibraryFromFile; 
+}; 
