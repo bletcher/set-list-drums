@@ -30,10 +30,10 @@ function setupEventListeners() {
     console.log('Adding click handler to button:', button.dataset.pattern);
     button.addEventListener('click', (e) => {
       e.preventDefault();
-      console.log('Button clicked:', button.dataset.pattern);
+      console.log('Button clicked:', button.pattern);
       const pattern = button.dataset.pattern;
       if (window.exampleGrooves[pattern]) {
-        console.log('Found pattern:', button.dataset.pattern);
+        console.log('Found pattern:', button.pattern);
         const grooveString = window.getExampleGroove(pattern).trim();
         
         // First update the grid size based on current settings
@@ -55,8 +55,18 @@ function setupEventListeners() {
     const button = e.target.closest('button');
     if (!button) return;
     
-    if (button.dataset.action === 'save-library') saveLibraryToFile();
-    if (button.dataset.action === 'load-library') loadLibraryFromFile();
+    const action = button.dataset.action;
+    console.log('Library control action:', action);
+    
+    if (action === 'save-library') {
+      e.preventDefault();
+      console.log('Calling saveLibraryToFile...');
+      window.saveLibraryToFile();
+    }
+    else if (action === 'load-library') {
+      e.preventDefault();
+      window.loadLibraryFromFile();
+    }
   });
 
   // Set list controls
@@ -70,15 +80,29 @@ function setupEventListeners() {
     if (button.dataset.action === 'clear') clearSetList();
   });
 
-  // Library table actions
-  document.querySelector('.library-table').addEventListener('click', e => {
+  // Remove any existing click handlers from the library table
+  const libraryTable = document.querySelector('.library-table');
+  const newLibraryTable = libraryTable.cloneNode(true);
+  libraryTable.parentNode.replaceChild(newLibraryTable, libraryTable);
+
+  // Add the click handler once
+  newLibraryTable.addEventListener('click', e => {
     const button = e.target.closest('button');
     if (!button) return;
     
-    const { action, id } = button.dataset;
-    if (action === 'add-to-set') addToSetList(parseInt(id));
-    if (action === 'delete-song') deleteSong(parseInt(id));
-    if (action === 'load-song') loadSong(parseInt(id));
+    const action = button.dataset.action;
+    if (action === 'add-to-set') {
+      e.preventDefault();
+      window.addToSetList(parseInt(button.dataset.id));
+    }
+    else if (action === 'load-song') {
+      e.preventDefault();
+      window.loadSong(parseInt(button.dataset.id));
+    }
+    else if (action === 'delete-song') {
+      e.preventDefault();
+      deleteSong(parseInt(button.dataset.id));
+    }
   });
 
   // Set list table actions

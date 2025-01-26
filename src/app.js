@@ -298,6 +298,12 @@ const renderSetList = () => {
 
 // List Management Functions
 window.addToSetList = (songId) => {
+  // Check if song is already in the setlist
+  if (window.state.currentSetList.includes(songId)) {
+    alert('This song is already in the set list');
+    return;
+  }
+  
   window.state.currentSetList.push(songId);
   saveCurrentSetList();
   renderSetList();
@@ -392,63 +398,60 @@ const requestFileSystemAccess = async () => {
   }
 };
 
-// Update saveLibraryToFile to use the permission check
+// Add a flag to track if a file operation is in progress
+let isFileOperationInProgress = false;
+
+// Update saveLibraryToFile to use the flag
 const saveLibraryToFile = async () => {
+  // Prevent multiple simultaneous file operations
+  if (isFileOperationInProgress) {
+    console.log('File operation already in progress');
+    return;
+  }
+
   try {
+    isFileOperationInProgress = true;
     const data = [...window.state.songLibrary.values()];
     const filename = window.state.libraryFileName || 'songLibrary.json';
 
-    // Check if we can use modern API
-    const hasFileAccess = await requestFileSystemAccess();
-    
-    if (hasFileAccess) {
-      try {
-        const options = {
-          suggestedName: filename,
-          types: [{
-            description: 'JSON File',
-            accept: {'application/json': ['.json']},
-          }],
-          excludeAcceptAllOption: false
-        };
+    const options = {
+      suggestedName: filename,
+      types: [{
+        description: 'JSON File',
+        accept: {'application/json': ['.json']},
+      }],
+      excludeAcceptAllOption: false
+    };
 
-        const handle = await window.showSaveFilePicker(options);
-        const writable = await handle.createWritable();
-        await writable.write(JSON.stringify(data, null, 2));
-        await writable.close();
-        
-        window.state.libraryFileName = handle.name;
-        localStorage.setItem('libraryFileName', handle.name);
-        renderFileNames();
-        return;
-      } catch (err) {
-        if (err.name === 'AbortError') return; // User cancelled
-        console.error('Modern save failed, falling back:', err);
-      }
-    }
-
-    // Fallback to traditional download
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const handle = await window.showSaveFilePicker(options);
+    const writable = await handle.createWritable();
+    await writable.write(JSON.stringify(data, null, 2));
+    await writable.close();
     
-    window.state.libraryFileName = filename;
-    localStorage.setItem('libraryFileName', filename);
+    window.state.libraryFileName = handle.name;
+    localStorage.setItem('libraryFileName', handle.name);
     renderFileNames();
   } catch (error) {
-    console.error('Error saving library:', error);
-    alert('Error saving file. Please try again.');
+    if (error.name !== 'AbortError') { // Don't show error if user just cancelled
+      console.error('Error saving library:', error);
+      alert('Error saving file. Please try again.');
+    }
+  } finally {
+    isFileOperationInProgress = false;
   }
 };
 
+window.saveLibraryToFile = saveLibraryToFile;
+
 const loadLibraryFromFile = async () => {
+  // Prevent multiple simultaneous file operations
+  if (isFileOperationInProgress) {
+    console.log('File operation already in progress');
+    return;
+  }
+
   try {
+    isFileOperationInProgress = true;
     // Try modern File System Access API first
     if ('showOpenFilePicker' in window) {
       try {
@@ -474,42 +477,23 @@ const loadLibraryFromFile = async () => {
         return;
       } catch (err) {
         if (err.name === 'AbortError') return; // User cancelled
-        console.error('Modern load failed, falling back:', err);
+        console.error('Modern load failed:', err);
+        throw err; // Re-throw to be caught by outer try-catch
       }
     }
 
-    // Fallback to traditional file input
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    
-    input.onchange = async (e) => {
-      try {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const text = await file.text();
-        const savedLibrary = JSON.parse(text);
-        
-        window.state.songLibrary.clear();
-        savedLibrary.forEach(song => window.state.songLibrary.set(song.id, song));
-        localStorage.setItem('songLibrary', JSON.stringify([...window.state.songLibrary.values()]));
-        window.state.libraryFileName = file.name;
-        localStorage.setItem('libraryFileName', file.name);
-        renderLibrary();
-        renderFileNames();
-      } catch (error) {
-        console.error('Error loading library:', error);
-        alert('Could not load file. Please make sure it is a valid song library file.');
-      }
-    };
-    
-    input.click();
+    throw new Error('Modern file API not available');
   } catch (error) {
-    console.error('Error loading library:', error);
-    alert('Error loading file. Please try again.');
+    if (error.name !== 'AbortError') { // Don't show error if user just cancelled
+      console.error('Error loading library:', error);
+      alert('Error loading file. Please try again.');
+    }
+  } finally {
+    isFileOperationInProgress = false;
   }
 };
+
+window.loadLibraryFromFile = loadLibraryFromFile;
 
 const saveSetListToFile = async () => {
   try {
@@ -763,13 +747,11 @@ V:1 perc stafflines=5 stem=up
     if (!svg) return;
 
     const notes = svg.querySelectorAll('.abcjs-note');
-    console.log('Found notes:', notes.length);  // Debug log
 
     // Each note element represents a chord of 3 notes
     notes.forEach((note, index) => {
       // Get all paths in this note (should include note heads)
       const paths = note.querySelectorAll('path');
-      console.log(`Note ${index} has ${paths.length} paths`);  // Debug log
 
       // Find the note heads - they should be the first 3 paths
       const noteHeads = Array.from(paths).slice(0, 3);
@@ -781,7 +763,6 @@ V:1 perc stafflines=5 stem=up
         // Map voice index to instrument (K=0, S=1, H=2 in the SVG)
         const instrument = ['K', 'S', 'H'][voiceIndex];
         const isHit = voices[instrument] && voices[instrument][index];  // Add safety check
-        console.log(`Setting ${instrument} at ${index} to ${isHit ? 'black' : 'grey'}`);
         
         // Style the note head
         head.style.fill = isHit ? 'black' : 'rgba(0,0,0,0.2)';

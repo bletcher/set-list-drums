@@ -1,0 +1,133 @@
+[
+  {
+    "id": 1737909452932,
+    "title": "Afro golden line",
+    "groove": "H|x-x-xxx-x-x-xxx-x-x-|\nS|---x--xx--x--x-x--xx|\nK|x-------xx------xx--|\n",
+    "notes": "Slow and slightly swung",
+    "link": "https://open.spotify.com/track/5GkhEe5eRuOS1AyJmNLZyH?si=cb5ef7f139a44040",
+    "settings": {
+      "bpm": "92",
+      "beatsPerBar": "5",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1737685915850,
+    "title": "Amtrak to Brooklyn",
+    "groove": "H|xxxxxxxxxx-x|\nS|-----x----x-|\nK|x--x-x-----x|\n",
+    "notes": "Intro/verse/bass/verse/bass/intro. Start together",
+    "settings": {
+      "bpm": "40",
+      "beatsPerBar": "6",
+      "beatUnit": "8",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1737687909333,
+    "title": "Ben there, Dan that",
+    "groove": "H|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|\nS|--------------------------------|\nK|---x----xx-xx-xx---x-x-----x----|\n",
+    "notes": "A. swing, B. the groove, 3. darker",
+    "settings": {
+      "bpm": "100",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "8",
+      "measureCount": "4"
+    }
+  },
+  {
+    "id": 1737822800344,
+    "title": "Boogie on",
+    "groove": "H|x-xxx-xxx-xxx-xx|\nS|----x-------x---|\nK|x--x--x---x---x-|\n",
+    "notes": "",
+    "settings": {
+      "bpm": "105",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1737687318416,
+    "title": "He bite me",
+    "groove": "H|xxxxxxxxxxxxxxxx|\nS|----x-------x---|\nK|x------xx--x-x--|\n",
+    "notes": "2 bar bridges",
+    "settings": {
+      "bpm": "72",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1737823865694,
+    "title": "Little Walter",
+    "groove": "H|x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-|\nS|----x--x----x-------x--x----x---|\nK|x-xx------x----xxx-x------x-----|\n",
+    "notes": "",
+    "settings": {
+      "bpm": "92",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "2"
+    }
+  },
+  {
+    "id": 1737823436499,
+    "title": "Love and happiness",
+    "groove": "H|xxxxxxxx|\nS|--x---x-|\nK|xx--xx--|\n",
+    "notes": "Occasional open hats on 4+",
+    "settings": {
+      "bpm": "96",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "8",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1737680090125,
+    "title": "Nardis",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x------x-x---x--|\n",
+    "notes": "",
+    "settings": {
+      "bpm": "90",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1737684856189,
+    "title": "Nocturn",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x--x---x-x----x-|\n",
+    "notes": "Fat snare, occasional 1e+ah on the kick",
+    "settings": {
+      "bpm": "75",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1737686647201,
+    "title": "Weird fishes",
+    "groove": "H|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|\nS|----x-------x--x----x--x-x--x--x|\nK|x-x----x-xx-----x-xx--x---xx-x--|\n",
+    "notes": "2nd measure is B part. Break on 2 on 2 groove.",
+    "settings": {
+      "bpm": "78",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "2"
+    }
+  }
+]
