@@ -8,26 +8,7 @@ window.state = {
 };
 
 // Default songs
-const getDefaultSongs = () => [
-  {
-    id: 1,
-    title: "Basic Rock",
-    groove: window.getExampleGroove('basic'),
-    notes: "Simple backbeat pattern"
-  },
-  {
-    id: 2,
-    title: "Rock Groove",
-    groove: window.getExampleGroove('rock'),
-    notes: "Rock pattern with kick variations"
-  },
-  {
-    id: 3,
-    title: "Funk Pattern",
-    groove: window.getExampleGroove('funk'),
-    notes: "Syncopated funk with 16th notes on the hats"
-  }
-];
+const getDefaultSongs = () => []; // Just return empty array
 
 // All the functions...
 window.handleSubmit = (event) => {
