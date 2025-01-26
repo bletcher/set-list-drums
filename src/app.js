@@ -11,7 +11,7 @@ window.state = {
 const getDefaultSongs = () => []; // Just return empty array
 
 // All the functions...
-window.handleSubmit = (event) => {
+window.handleSubmit = async (event) => {
   event.preventDefault();
   const form = event.target;
   const id = Date.now();
@@ -50,6 +50,11 @@ window.handleSubmit = (event) => {
   form.reset();
   window.updateTimeSignature();  // Reset grid to default state
   renderLibrary();
+
+  // Auto-save to file if we have a filename
+  if (window.state.libraryFileName) {
+    await saveLibraryToFile();
+  }
 };
 
 // UI Functions
