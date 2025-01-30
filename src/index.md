@@ -6,6 +6,10 @@ baseurl: /song-library
 <link rel="stylesheet" href="https://paulrosen.github.io/abcjs/abcjs-audio.css"/>
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.3/dist/abcjs-basic-min.js"></script>
 
+```js
+import { initialize, initializeGrids, setupGridClickHandlers, updateTimeSignature, getCurrentGrooveString, renderScore } from "./app.js"
+```
+
 <script>
 // Add load event listener for app.js
 window.addEventListener('load', () => {
@@ -36,34 +40,31 @@ window.checkAppReady = () => {
   return true;
 };
 
-// Update the initialization code
+// Update initialization code to use imported functions
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM Content Loaded');
   
   const checkAndInitialize = () => {
     console.log('Checking app readiness...');
     
-    if (window.checkAppReady()) {
-      try {
-        console.log('Initializing app...');
-        window.initialize();
-        window.updateTimeSignature();
-        window.initializeGrids();
-        window.setupGridClickHandlers();
-        setupEventListeners();
-        window.renderScore(window.getCurrentGrooveString());
-        console.log('App fully initialized');
-      } catch (error) {
-        console.error('Error during initialization:', error);
-      }
-    } else {
-      console.log('App not ready, retrying in 100ms...');
+    try {
+      console.log('Initializing app...');
+      initialize();
+      updateTimeSignature();
+      initializeGrids();
+      setupGridClickHandlers();
+      setupEventListeners();
+      renderScore(getCurrentGrooveString());
+      console.log('App fully initialized');
+    } catch (error) {
+      console.error('Error during initialization:', error);
+      // Retry after a delay if there's an error
       setTimeout(checkAndInitialize, 100);
     }
   };
 
-  // Start checking after a short delay to ensure script loading
-  setTimeout(checkAndInitialize, 100);
+  // Start initialization
+  checkAndInitialize();
 });
 
 function setupEventListeners() {
