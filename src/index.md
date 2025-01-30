@@ -5,7 +5,7 @@ baseurl: /song-library
 
 <link rel="stylesheet" href="https://paulrosen.github.io/abcjs/abcjs-audio.css"/>
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.3/dist/abcjs-basic-min.js"></script>
-<script src="/song-library/app.js"></script>
+<script src="./app.js"></script>
 
 <script>
 // Update the initialization code
