@@ -8,33 +8,64 @@ baseurl: /song-library
 <script src="./app.js"></script>
 
 <script>
+// Add a global check function
+window.checkAppReady = () => {
+  const required = [
+    'initializeGrids',
+    'setupGridClickHandlers',
+    'initialize',
+    'updateTimeSignature',
+    'getCurrentGrooveString',
+    'renderScore'
+  ];
+  
+  const missing = required.filter(fn => typeof window[fn] !== 'function');
+  if (missing.length > 0) {
+    console.warn('Missing functions:', missing);
+    return false;
+  }
+  return true;
+};
+
 // Update the initialization code
 document.addEventListener('DOMContentLoaded', () => {
-  // Wait for both DOM and app.js to be fully loaded
+  console.log('DOM Content Loaded');
+  
   const checkAndInitialize = () => {
-    if (typeof window.initializeGrids === 'function' && 
-        typeof window.setupGridClickHandlers === 'function' && 
-        typeof window.initialize === 'function') {
-      
-      // Initialize the app
-      window.initialize();
-      
-      // Explicitly initialize grids and setup handlers
-      window.initializeGrids();
-      window.setupGridClickHandlers();
-      
-      // Setup other event listeners
-      setupEventListeners();
-      
-      console.log('App fully initialized');
+    console.log('Checking app readiness...');
+    
+    if (window.checkAppReady()) {
+      try {
+        console.log('Initializing app...');
+        
+        // Initialize the app first
+        window.initialize();
+        
+        // Update time signature to create initial grid
+        window.updateTimeSignature();
+        
+        // Initialize grids and setup handlers
+        window.initializeGrids();
+        window.setupGridClickHandlers();
+        
+        // Setup other event listeners
+        setupEventListeners();
+        
+        // Render initial empty score
+        window.renderScore(window.getCurrentGrooveString());
+        
+        console.log('App fully initialized');
+      } catch (error) {
+        console.error('Error during initialization:', error);
+      }
     } else {
-      // If not all functions are available yet, try again in 100ms
-      console.log('Waiting for app.js to load completely...');
+      console.log('App not ready, retrying in 100ms...');
       setTimeout(checkAndInitialize, 100);
     }
   };
 
-  checkAndInitialize();
+  // Start checking after a short delay to ensure script loading
+  setTimeout(checkAndInitialize, 100);
 });
 
 function setupEventListeners() {
