@@ -5,10 +5,9 @@ baseurl: /song-library
 
 <link rel="stylesheet" href="https://paulrosen.github.io/abcjs/abcjs-audio.css"/>
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.3/dist/abcjs-basic-min.js"></script>
-<script src="./app.js"></script>
 
+<!-- Move initialization code before app.js -->
 <script>
-// Add a global check function
 window.checkAppReady = () => {
   const required = [
     'initializeGrids',
@@ -37,23 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.checkAppReady()) {
       try {
         console.log('Initializing app...');
-        
-        // Initialize the app first
         window.initialize();
-        
-        // Update time signature to create initial grid
         window.updateTimeSignature();
-        
-        // Initialize grids and setup handlers
         window.initializeGrids();
         window.setupGridClickHandlers();
-        
-        // Setup other event listeners
         setupEventListeners();
-        
-        // Render initial empty score
         window.renderScore(window.getCurrentGrooveString());
-        
         console.log('App fully initialized');
       } catch (error) {
         console.error('Error during initialization:', error);
@@ -164,6 +152,9 @@ function setupEventListeners() {
   });
 }
 </script>
+
+<!-- Add app.js with defer attribute after initialization code -->
+<script src="./app.js" defer></script>
 
 <div class="hero">
   <h1>Song library and set list creator</h1>
