@@ -7,7 +7,7 @@ baseurl: /song-library
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.3/dist/abcjs-basic-min.js"></script>
 
 ```js
-import { initialize, initializeGrids, setupGridClickHandlers, updateTimeSignature, getCurrentGrooveString, renderScore } from "./app.js"
+import * as app from "./app.js"
 ```
 
 <script>
@@ -49,12 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     try {
       console.log('Initializing app...');
-      initialize();
-      updateTimeSignature();
-      initializeGrids();
-      setupGridClickHandlers();
+      app.initialize();
+      app.updateTimeSignature();
+      app.initializeGrids();
+      app.setupGridClickHandlers();
       setupEventListeners();
-      renderScore(getCurrentGrooveString());
+      app.renderScore(app.getCurrentGrooveString());
       console.log('App fully initialized');
     } catch (error) {
       console.error('Error during initialization:', error);
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function setupEventListeners() {
   // Set up form event handlers
-  document.querySelector('.song-form').addEventListener('submit', handleSubmit);
+  document.querySelector('.song-form').addEventListener('submit', app.handleSubmit);
   
   // Update groove examples handler
   document.querySelectorAll('.groove-examples button').forEach(button => {
@@ -107,11 +107,11 @@ function setupEventListeners() {
     if (action === 'save-library') {
       e.preventDefault();
       console.log('Calling saveLibraryToFile...');
-      window.saveLibraryToFile();
+      app.saveLibraryToFile();
     }
     else if (action === 'load-library') {
       e.preventDefault();
-      window.loadLibraryFromFile();
+      app.loadLibraryFromFile();
     }
   });
 
