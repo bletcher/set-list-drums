@@ -6,6 +6,16 @@ baseurl: /song-library
 <link rel="stylesheet" href="https://paulrosen.github.io/abcjs/abcjs-audio.css"/>
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.3/dist/abcjs-basic-min.js"></script>
 
+<script>
+// Add load event listener for app.js
+window.addEventListener('load', () => {
+  console.log('Window fully loaded');
+  if (!window.initialize) {
+    console.error('app.js did not load properly');
+  }
+});
+</script>
+
 <!-- Move initialization code before app.js -->
 <script>
 window.checkAppReady = () => {
@@ -153,8 +163,19 @@ function setupEventListeners() {
 }
 </script>
 
-<!-- Add app.js with defer attribute after initialization code -->
+<!-- Try loading app.js both ways -->
 <script src="./app.js" defer></script>
+<script>
+// Fallback script loader
+if (!window.initialize) {
+  console.log('Attempting fallback script load');
+  const script = document.createElement('script');
+  script.src = './app.js';
+  script.onerror = (e) => console.error('Error loading app.js:', e);
+  script.onload = () => console.log('app.js loaded via fallback');
+  document.head.appendChild(script);
+}
+</script>
 
 <div class="hero">
   <h1>Song library and set list creator</h1>
