@@ -1,24 +1,40 @@
 ---
 toc: false
+baseurl: /song-library
 ---
 
 <link rel="stylesheet" href="https://paulrosen.github.io/abcjs/abcjs-audio.css"/>
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.3/dist/abcjs-basic-min.js"></script>
-<script src="./app.js"></script>
+<script src="/song-library/app.js"></script>
 
 <script>
-// Wait for both DOM and app.js to load
+// Update the initialization code
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM loaded, checking for initialize...');
-  if (typeof initialize === 'function') {
-    console.log('Initialize found, running...');
-    initialize();
-    console.log('Setting up event listeners...');
-    setupEventListeners();
-    console.log('Setup complete');
-  } else {
-    console.error('App functions not loaded');
-  }
+  // Wait for both DOM and app.js to be fully loaded
+  const checkAndInitialize = () => {
+    if (typeof window.initializeGrids === 'function' && 
+        typeof window.setupGridClickHandlers === 'function' && 
+        typeof window.initialize === 'function') {
+      
+      // Initialize the app
+      window.initialize();
+      
+      // Explicitly initialize grids and setup handlers
+      window.initializeGrids();
+      window.setupGridClickHandlers();
+      
+      // Setup other event listeners
+      setupEventListeners();
+      
+      console.log('App fully initialized');
+    } else {
+      // If not all functions are available yet, try again in 100ms
+      console.log('Waiting for app.js to load completely...');
+      setTimeout(checkAndInitialize, 100);
+    }
+  };
+
+  checkAndInitialize();
 });
 
 function setupEventListeners() {
