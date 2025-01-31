@@ -5,177 +5,135 @@ baseurl: /song-library
 
 <link rel="stylesheet" href="https://paulrosen.github.io/abcjs/abcjs-audio.css"/>
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.3/dist/abcjs-basic-min.js"></script>
-
-```js
-import * as app from "./app.js"
-```
+<script src="./app.js"></script>
 
 <script>
-// Add load event listener for app.js
-window.addEventListener('load', () => {
-  console.log('Window fully loaded');
-  if (!window.initialize) {
-    console.error('app.js did not load properly');
-  }
-});
-</script>
-
-<!-- Move initialization code before app.js -->
-<script>
-window.checkAppReady = () => {
-  const required = [
-    'initializeGrids',
-    'setupGridClickHandlers',
-    'initialize',
-    'updateTimeSignature',
-    'getCurrentGrooveString',
-    'renderScore'
-  ];
-  
-  const missing = required.filter(fn => typeof window[fn] !== 'function');
-  if (missing.length > 0) {
-    console.warn('Missing functions:', missing);
-    return false;
-  }
-  return true;
-};
-
-// Update initialization code to use imported functions
+// Wait for both DOM and app.js to load
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM Content Loaded');
-  
-  const checkAndInitialize = () => {
-    console.log('Checking app readiness...');
+  function setupFormHandlers() {
+    // BPM handler
+    document.querySelector('[name="bpmInput"]').addEventListener('input', (e) => {
+      window.updateBPM(e.target.value);
+    });
+
+    // Time signature handlers
+    document.querySelector('[name="beatsPerBar"]').addEventListener('input', (e) => {
+      window.updateTimeSignature();
+      window.renderScore(window.getCurrentGrooveString());
+    });
+
+    document.querySelector('[name="beatUnit"]').addEventListener('input', (e) => {
+      window.updateTimeSignature();
+      window.renderScore(window.getCurrentGrooveString());
+    });
+
+    // Measures handler
+    document.querySelector('[name="measureCount"]').addEventListener('input', (e) => {
+      window.updateTimeSignature();
+      window.renderScore(window.getCurrentGrooveString());
+    });
+
+    // Note division handler
+    document.querySelector('[name="noteDivision"]').addEventListener('change', (e) => {
+      window.updateNoteDivision(e.target.value);
+    });
+  }
+
+  function setupEventListeners() {
+    // Add form handlers
+    setupFormHandlers();
     
-    try {
-      console.log('Initializing app...');
-      app.initialize();
-      app.updateTimeSignature();
-      app.initializeGrids();
-      app.setupGridClickHandlers();
-      setupEventListeners();
-      app.renderScore(app.getCurrentGrooveString());
-      console.log('App fully initialized');
-    } catch (error) {
-      console.error('Error during initialization:', error);
-      // Retry after a delay if there's an error
-      setTimeout(checkAndInitialize, 100);
-    }
-  };
+    // Update groove examples handler
+    document.querySelectorAll('.groove-examples button').forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const pattern = button.dataset.pattern;
+        if (pattern) {
+          const grooveString = window.getExampleGroove(pattern).trim();
+          window.updateTimeSignature();
+          window.updateGridFromGroove(grooveString);
+          window.setupGridClickHandlers();
+          window.renderScore(grooveString);
+        }
+      });
+    });
 
-  // Start initialization
-  checkAndInitialize();
-});
-
-function setupEventListeners() {
-  // Set up form event handlers
-  document.querySelector('.song-form').addEventListener('submit', app.handleSubmit);
-  
-  // Update groove examples handler
-  document.querySelectorAll('.groove-examples button').forEach(button => {
-    console.log('Adding click handler to button:', button.dataset.pattern);
-    button.addEventListener('click', (e) => {
-      e.preventDefault();
-      console.log('Button clicked:', button.pattern);
-      const pattern = button.dataset.pattern;
-      if (window.exampleGrooves[pattern]) {
-        console.log('Found pattern:', button.pattern);
-        const grooveString = window.getExampleGroove(pattern).trim();
-        
-        // First update the grid size based on current settings
-        window.updateTimeSignature();
-        
-        // Then apply the pattern
-        window.updateGridFromGroove(grooveString);
-        window.setupGridClickHandlers();
-        
-        // Generate and display ABC notation
-        const abcString = window.generateAbcNotation(grooveString);
-        window.renderScore(grooveString);
+    // Library controls
+    document.querySelector('.library-controls').addEventListener('click', e => {
+      const button = e.target.closest('button');
+      if (!button) return;
+      
+      const action = button.dataset.action;
+      if (action === 'save-library') {
+        e.preventDefault();
+        window.saveLibraryToFile();
+      }
+      else if (action === 'load-library') {
+        e.preventDefault();
+        window.loadLibraryFromFile();
       }
     });
-  });
 
-  // Library controls
-  document.querySelector('.library-controls').addEventListener('click', e => {
-    const button = e.target.closest('button');
-    if (!button) return;
-    
-    const action = button.dataset.action;
-    console.log('Library control action:', action);
-    
-    if (action === 'save-library') {
-      e.preventDefault();
-      console.log('Calling saveLibraryToFile...');
-      app.saveLibraryToFile();
-    }
-    else if (action === 'load-library') {
-      e.preventDefault();
-      app.loadLibraryFromFile();
-    }
-  });
+    // Set list controls
+    document.querySelector('.setlist-controls').addEventListener('click', e => {
+      const button = e.target.closest('button');
+      if (!button) return;
+      
+      if (button.dataset.action === 'save-setlist') window.saveSetListToFile();
+      if (button.dataset.action === 'load-setlist') window.loadSetListFromFile();
+      if (button.dataset.action === 'print') window.print();
+      if (button.dataset.action === 'clear') window.clearSetList();
+    });
 
-  // Set list controls
-  document.querySelector('.setlist-controls').addEventListener('click', e => {
-    const button = e.target.closest('button');
-    if (!button) return;
-    
-    if (button.dataset.action === 'save-setlist') saveSetListToFile();
-    if (button.dataset.action === 'load-setlist') loadSetListFromFile();
-    if (button.dataset.action === 'print') window.print();
-    if (button.dataset.action === 'clear') clearSetList();
-  });
+    // Remove any existing click handlers from the library table
+    const libraryTable = document.querySelector('.library-table');
+    const newLibraryTable = libraryTable.cloneNode(true);
+    libraryTable.parentNode.replaceChild(newLibraryTable, libraryTable);
 
-  // Remove any existing click handlers from the library table
-  const libraryTable = document.querySelector('.library-table');
-  const newLibraryTable = libraryTable.cloneNode(true);
-  libraryTable.parentNode.replaceChild(newLibraryTable, libraryTable);
+    // Add the click handler once
+    newLibraryTable.addEventListener('click', e => {
+      const button = e.target.closest('button');
+      if (!button) return;
+      
+      const action = button.dataset.action;
+      if (action === 'add-to-set') {
+        e.preventDefault();
+        window.addToSetList(parseInt(button.dataset.id));
+      }
+      else if (action === 'load-song') {
+        e.preventDefault();
+        window.loadSong(parseInt(button.dataset.id));
+      }
+      else if (action === 'delete-song') {
+        e.preventDefault();
+        window.deleteSong(parseInt(button.dataset.id));
+      }
+    });
 
-  // Add the click handler once
-  newLibraryTable.addEventListener('click', e => {
-    const button = e.target.closest('button');
-    if (!button) return;
-    
-    const action = button.dataset.action;
-    if (action === 'add-to-set') {
-      e.preventDefault();
-      window.addToSetList(parseInt(button.dataset.id));
-    }
-    else if (action === 'load-song') {
-      e.preventDefault();
-      window.loadSong(parseInt(button.dataset.id));
-    }
-    else if (action === 'delete-song') {
-      e.preventDefault();
-      deleteSong(parseInt(button.dataset.id));
-    }
-  });
+    // Set list table actions
+    document.querySelector('.setlist-table').addEventListener('click', e => {
+      const button = e.target.closest('button');
+      if (!button) return;
+      
+      const { action, index } = button.dataset;
+      if (action === 'move-up') window.moveSong(parseInt(index), -1);
+      if (action === 'move-down') window.moveSong(parseInt(index), 1);
+      if (action === 'remove-from-set') window.removeFromSet(parseInt(index));
+    });
+  }
 
-  // Set list table actions
-  document.querySelector('.setlist-table').addEventListener('click', e => {
-    const button = e.target.closest('button');
-    if (!button) return;
-    
-    const { action, index } = button.dataset;
-    if (action === 'move-up') moveSong(parseInt(index), -1);
-    if (action === 'move-down') moveSong(parseInt(index), 1);
-    if (action === 'remove-from-set') removeFromSet(parseInt(index));
-  });
-}
-</script>
-
-<!-- Try loading app.js both ways -->
-<script src="./app.js" defer></script>
-<script>
-// Fallback script loader
-if (!window.initialize) {
-  console.log('Attempting fallback script load');
-  const script = document.createElement('script');
-  script.src = './app.js';
-  script.onerror = (e) => console.error('Error loading app.js:', e);
-  script.onload = () => console.log('app.js loaded via fallback');
-  document.head.appendChild(script);
-}
+  // Initialize
+  try {
+    window.initialize();
+    window.updateTimeSignature();
+    window.initializeGrids();
+    window.setupGridClickHandlers();
+    setupEventListeners();
+    window.renderScore(window.getCurrentGrooveString());
+  } catch (error) {
+    console.error('Error during initialization:', error);
+  }
+});
 </script>
 
 <div class="hero">
@@ -194,26 +152,26 @@ if (!window.initialize) {
         <div class="form-group">
           <label>Tempo (BPM):</label>
           <input type="number" name="bpmInput" value="120" min="40" max="300" 
-            oninput="window.updateBPM(this.value)">
+            oninput="updateBPM(this.value)">
         </div>
         <div class="form-group time-signature">
           <label>Time Signature:</label>
           <div class="time-inputs">
             <input type="number" name="beatsPerBar" value="4" min="1" max="16" 
-              oninput="window.updateTimeSignature(); window.renderScore(window.getCurrentGrooveString())">
+              oninput="updateTimeSignature(); renderScore(getCurrentGrooveString())">
             <span class="divider">/</span>
             <input type="number" name="beatUnit" value="4" min="2" max="16" step="2"
-              oninput="window.updateTimeSignature(); window.renderScore(window.getCurrentGrooveString())">
+              oninput="updateTimeSignature(); renderScore(getCurrentGrooveString())">
           </div>
         </div>
         <div class="form-group">
           <label>Measures:</label>
           <input type="number" name="measureCount" value="1" min="1" max="4" 
-            oninput="window.updateTimeSignature(); window.renderScore(window.getCurrentGrooveString())">
+            oninput="updateTimeSignature(); renderScore(getCurrentGrooveString())">
         </div>
         <div class="form-group">
           <label>Note Division:</label>
-          <select name="noteDivision" onchange="window.updateNoteDivision(this.value)">
+          <select name="noteDivision" onchange="updateNoteDivision(this.value)">
             <option value="4">Quarter Notes</option>
             <option value="8">Eighth Notes</option>
             <option value="16" selected>Sixteenth Notes</option>

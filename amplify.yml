@@ -9,6 +9,7 @@ frontend:
     baseDirectory: dist
     files:
       - '**/*'
+      - app.js
   cache:
     paths:
       - node_modules/**/*
