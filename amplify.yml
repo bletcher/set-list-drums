@@ -16,4 +16,8 @@ frontend:
     - pattern: '**/*'
       headers:
         - key: 'Cache-Control'
-          value: 'max-age=0, no-cache, no-store, must-revalidate' 
+          value: 'no-cache, no-store, must-revalidate'
+    - pattern: '/components/*'
+      headers:
+        - key: 'Cache-Control'
+          value: 'no-cache, no-store, must-revalidate' 
