@@ -7,11 +7,8 @@ window.state = {
   setListFileName: localStorage.getItem('setListFileName')
 };
 
-// Import data files
-import defaultLibrary from "./data/defaultLibrary.json";
-
-// Update getDefaultSongs to use the imported data
-const getDefaultSongs = () => defaultLibrary || [];
+// Default songs - keep it empty
+const getDefaultSongs = () => [];
 
 // All the functions...
 window.handleSubmit = async (event) => {
