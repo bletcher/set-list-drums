@@ -7,8 +7,11 @@ window.state = {
   setListFileName: localStorage.getItem('setListFileName')
 };
 
-// Default songs
-const getDefaultSongs = () => []; // Just return empty array
+// Import data files
+import defaultLibrary from "./data/defaultLibrary.json";
+
+// Update getDefaultSongs to use the imported data
+const getDefaultSongs = () => defaultLibrary || [];
 
 // All the functions...
 window.handleSubmit = async (event) => {
@@ -1023,7 +1026,7 @@ window.setupGridClickHandlers = setupGridClickHandlers;
 
 // Move all initialization into a single function
 const initializeApp = () => {
-  // Initialize state
+  // Initialize state with empty collections
   window.state = {
     songLibrary: new Map(),
     currentSetList: [],
@@ -1032,15 +1035,14 @@ const initializeApp = () => {
     setListFileName: localStorage.getItem('setListFileName')
   };
 
-  // Load saved library from localStorage
+  // Load saved library from localStorage (if any)
   const savedLibrary = localStorage.getItem('songLibrary');
   if (savedLibrary) {
     const songs = JSON.parse(savedLibrary);
     songs.forEach(song => window.state.songLibrary.set(song.id, song));
   } else if (window.state.songLibrary.size === 0) {
-    // Load default songs if no saved library
+    // Start with empty library if nothing saved
     getDefaultSongs().forEach(song => window.state.songLibrary.set(song.id, song));
-    // Save default songs to localStorage
     localStorage.setItem('songLibrary', JSON.stringify([...window.state.songLibrary.values()]));
   }
 
