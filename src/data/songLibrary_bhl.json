@@ -27,6 +27,34 @@
     }
   },
   {
+    "id": 1739039097088,
+    "title": "Beatrice",
+    "groove": "H|x-x-----|\nS|--------|\nK|x-------|\n",
+    "notes": "Swung, hits on 1+,3 on measure 15 of the form - update",
+    "link": "https://open.spotify.com/track/4uTYu4pw7NHehASffKZLqw?si=142b01ad7c384df2",
+    "settings": {
+      "bpm": "115",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "8",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1739038933293,
+    "title": "Been there, dan that",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-----x-x-----x-|\n",
+    "notes": "Need to update",
+    "link": "",
+    "settings": {
+      "bpm": "120",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
     "id": 1737687909333,
     "title": "Ben there, Dan that",
     "groove": "H|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|\nS|--------------------------------|\nK|---x----xx-xx-xx---x-x-----x----|\n",
@@ -37,6 +65,20 @@
       "beatUnit": "4",
       "noteDivision": "8",
       "measureCount": "4"
+    }
+  },
+  {
+    "id": 1739039387399,
+    "title": "Black market",
+    "groove": "H|xxxxxxxxxxxxxxxx|\nS|----x-------x---|\nK|x-x----x--x--x--|\n",
+    "notes": "Intro - hh and click, A - heavy syncopated ride, B - 4/4+7/8 for 4 measures, C - triplet hits",
+    "link": "https://open.spotify.com/track/5dJS5oBmC6wvJ2nNzl5hNo?si=81fff8e3a20e466b",
+    "settings": {
+      "bpm": "100",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
     }
   },
   {
@@ -53,12 +95,68 @@
     }
   },
   {
+    "id": 1739038437743,
+    "title": "Chubb sub",
+    "groove": "H|xxxxxxxxxxxxxxxx|\nS|----x--x----x---|\nK|x-x-------x----x|\n",
+    "notes": "Slightly swung/funky, go to Well you needn't in the middle and return after",
+    "link": "https://open.spotify.com/track/0NMpJoxykO6UIIXxg8im8K?si=6ab5d0410ecc461a",
+    "settings": {
+      "bpm": "98",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1738536882840,
+    "title": "Dm blues",
+    "groove": "H|--------|\nS|--------|\nK|--------|\n",
+    "notes": "Swung",
+    "link": "",
+    "settings": {
+      "bpm": "114",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "8",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1738537392434,
+    "title": "Green tea",
+    "groove": "H|xxxxxxxxxxxxxxxx|\nS|-x--x-------x---|\nK|x--x--x--x-----x|\n",
+    "notes": "",
+    "link": "",
+    "settings": {
+      "bpm": "120",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
     "id": 1737687318416,
     "title": "He bite me",
     "groove": "H|xxxxxxxxxxxxxxxx|\nS|----x-------x---|\nK|x------xx--x-x--|\n",
     "notes": "2 bar bridges",
     "settings": {
       "bpm": "72",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1739038865202,
+    "title": "Honey jar",
+    "groove": "H|xxxxxxxxxxxxxxxx|\nS|----x--x--x-x---|\nK|x-x------------x|\n",
+    "notes": "1st measure groove/ slow swung section, groove/ slow * 2/ back to groove with hits on 3, 3+/ bridge",
+    "link": "https://open.spotify.com/track/05ifN6wsfyc1JIGDTTpBMp?si=42db860d42a34fdd",
+    "settings": {
+      "bpm": "82",
       "beatsPerBar": "4",
       "beatUnit": "4",
       "noteDivision": "16",
@@ -102,6 +200,20 @@
       "beatsPerBar": "4",
       "beatUnit": "4",
       "noteDivision": "8",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1739038179206,
+    "title": "Machado",
+    "groove": "H|xxxxxxxxxxxxxxxx|\nS|x--x--x---x-x---|\nK|x------xx------x|\n",
+    "notes": "Smooth groove",
+    "link": "",
+    "settings": {
+      "bpm": "82",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
       "measureCount": "1"
     }
   },

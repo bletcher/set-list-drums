@@ -4,7 +4,7 @@ toc: false
 
 <link rel="stylesheet" href="https://paulrosen.github.io/abcjs/abcjs-audio.css"/>
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.3/dist/abcjs-basic-min.js"></script>
-<script src="/components/app.js"></script>
+<script src="./components/app.js"></script>
 
 <script>
 // Update the initialization code
@@ -217,37 +217,41 @@ function setupEventListeners() {
   <!-- Lists Container -->
   <div class="list-container">
     <!-- Song Library -->
-  <div class="card">
-      <h3 class="library-title">
-        Song Library
-        <span class="filename"></span>
-      </h3>
-      <div class="library-controls">
-        <div class="search-container">
-          <input 
-            type="text" 
-            id="library-search" 
-            placeholder="Search songs..." 
-            class="search-input"
-          >
+    <div class="card">
+      <div class="library-header">
+        <h3 class="library-title" onclick="toggleLibrary(event)" style="cursor: pointer;">
+          Song Library <span class="filename"></span>
+          <span class="collapse-icon">▼</span>
+        </h3>
+        <div class="library-controls">
+          <div class="search-container">
+            <input 
+              type="text" 
+              id="library-search" 
+              placeholder="Search songs..." 
+              class="search-input"
+            >
+          </div>
+          <button data-action="save-library">Save Library</button>
+          <button data-action="load-library">Load Library</button>
+          <input type="file" id="library-file-input" style="display: none" accept=".json">
         </div>
-        <button data-action="save-library">Save Library</button>
-        <button data-action="load-library">Load Library</button>
-        <input type="file" id="library-file-input" style="display: none" accept=".json">
-  </div>
-      <table class="library-table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Notes</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-  </div>
+      </div>
+      <div class="library-content">
+        <table class="library-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
     <!-- Set List Management -->
-  <div class="card">
+    <div class="card">
       <h3 class="setlist-title">
         Current Set List
         <span class="filename"></span>
@@ -258,7 +262,7 @@ function setupEventListeners() {
         <input type="file" id="setlist-file-input" style="display: none" accept=".json">
         <button data-action="print">Print</button>
         <button data-action="clear">Clear</button>
-  </div>
+      </div>
       <table class="setlist-table">
         <thead>
           <tr>
@@ -270,7 +274,7 @@ function setupEventListeners() {
         </thead>
         <tbody></tbody>
       </table>
-  </div>
+    </div>
   </div>
 </div>
 
@@ -1053,5 +1057,79 @@ mark {
 .library-table button:last-child,
 .setlist-table button:last-child {
   margin-right: 0;
+}
+
+/* Add to the existing <style> section */
+.library-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.collapse-icon {
+  font-size: 0.8em;
+  transition: transform 0.3s ease;
+}
+
+.library-content {
+  transition: max-height 0.3s ease-out;
+  overflow: hidden;
+  max-height: 2000px; /* Adjust based on your needs */
+}
+
+.library-content.collapsed {
+  max-height: 0;
+}
+
+.library-title.collapsed .collapse-icon {
+  transform: rotate(-90deg);
+}
+
+/* Update library styles */
+.library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.library-title {
+  margin: 0;
+  flex-shrink: 0;
+  margin-right: 1rem;
+}
+
+.library-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.search-container {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Update collapse styles */
+.library-content {
+  transition: max-height 0.3s ease-out;
+  overflow: hidden;
+  max-height: 2000px;
+}
+
+.library-content.collapsed {
+  max-height: 0;
+}
+
+.library-title .collapse-icon {
+  font-size: 0.8em;
+  transition: transform 0.3s ease;
+  margin-left: 0.5rem;
+}
+
+.library-title.collapsed .collapse-icon {
+  transform: rotate(-90deg);
 }
 </style>

@@ -11,7 +11,7 @@ window.state = {
 const getDefaultSongs = () => [];
 
 // All the functions...
-window.handleSubmit = async (event) => {
+window.handleSubmit = (event) => {
   event.preventDefault();
   const form = event.target;
   const id = Date.now();
@@ -43,18 +43,13 @@ window.handleSubmit = async (event) => {
   window.state.songLibrary.clear();
   songs.forEach(song => window.state.songLibrary.set(song.id, song));
   
-  // Save to localStorage
+  // Save to localStorage only
   localStorage.setItem('songLibrary', JSON.stringify(songs));
   
   // Reset form and grid
   form.reset();
   window.updateTimeSignature();  // Reset grid to default state
   renderLibrary();
-
-  // Auto-save to file if we have a filename
-  if (window.state.libraryFileName) {
-    await saveLibraryToFile();
-  }
 };
 
 // UI Functions
@@ -1314,4 +1309,15 @@ window.getExampleGroove = (pattern) => {
     H|${convertedH}|
     S|${convertedS}|
     K|${convertedK}|`;
+};
+
+// Update the toggleLibrary function
+window.toggleLibrary = (event) => {
+  event.stopPropagation(); // Prevent event bubbling
+  const header = event.currentTarget;
+  const card = header.closest('.card');
+  const content = card.querySelector('.library-content');
+  
+  header.classList.toggle('collapsed');
+  content.classList.toggle('collapsed');
 }; 
