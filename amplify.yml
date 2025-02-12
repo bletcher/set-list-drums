@@ -20,4 +20,11 @@ frontend:
     - pattern: '/components/*'
       headers:
         - key: 'Cache-Control'
-          value: 'no-cache, no-store, must-revalidate' 
+          value: 'no-cache, no-store, must-revalidate'
+  redirects:
+    - source: /drums
+      target: /drums/index.html
+      status: 200
+    - source: /drums/<*>
+      target: /drums/index.html
+      status: 200 
