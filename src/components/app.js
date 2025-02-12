@@ -74,12 +74,15 @@ const highlightMatch = (text, searchTerm) => {
 
 const renderLibrary = (searchTerm = '') => {
   const tbody = document.querySelector('.library-table tbody');
+  const libraryContent = document.querySelector('.library-content');
+  const libraryTitle = document.querySelector('.library-title');
   
   // Generate unique IDs for each song, filter by search term, and sort alphabetically
   const songs = [...window.state.songLibrary.values()]
     .filter(song => 
       !searchTerm || 
-      song.title.toLowerCase().includes(searchTerm.toLowerCase())
+      song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      song.notes.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()))
     .map((song, index) => ({
@@ -88,6 +91,12 @@ const renderLibrary = (searchTerm = '') => {
       index,
       highlightedTitle: highlightMatch(song.title, searchTerm)
     }));
+
+  // If we have search results, expand the library
+  if (searchTerm && songs.length > 0) {
+    libraryContent.classList.remove('collapsed');
+    libraryTitle.classList.remove('collapsed');
+  }
   
   // Render the HTML
   tbody.innerHTML = songs.map(song => `
