@@ -1,6 +1,5 @@
 ---
 toc: false
-baseurl: /drums
 ---
 
 <link rel="stylesheet" href="https://paulrosen.github.io/abcjs/abcjs-audio.css"/>
