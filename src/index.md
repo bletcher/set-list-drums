@@ -537,26 +537,125 @@ button:active {
 }
 
 @media print {
-  .card:not(:has(.setlist-table)) {
-    display: none;
+  /* Common print styles */
+  .hero, 
+  .song-form,
+  .library-controls,
+  .setlist-controls,
+  button,
+  input[type="file"] {
+    display: none !important;
   }
-  
-  .setlist-controls, 
-  button {
-    display: none;
+
+  /* Basic table styles */
+  .setlist-table {
+    width: 100% !important;
+    margin: 0;
+    border-collapse: collapse;
+    table-layout: fixed !important;
   }
-  
-  .card {
-    box-shadow: none;
-    padding: 0;
-  }
-  
-  .hero {
-    margin: 1rem 0;
-  }
-  
-  .groove-notation {
+
+  .setlist-table tr {
     page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  .setlist-table th,
+  .setlist-table td {
+    padding: 3px 6px !important;
+    font-size: 9px !important;  /* Smaller for portrait */
+    border: 1px solid #ddd;
+    white-space: normal !important;
+    vertical-align: top;
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    line-height: 1.2 !important;  /* Tighter line height */
+  }
+
+  /* Order column - with background */
+  .setlist-table th:nth-child(1),
+  .setlist-table td:nth-child(1) {
+    width: 20px !important;
+    text-align: center !important;
+    font-weight: bold !important;
+  }
+
+  /* Alternate row colors */
+  .setlist-table tr:nth-child(even) {
+    background-color: #f0f0f0 !important;
+  }
+
+  .setlist-table tr:nth-child(odd) {
+    background-color: white !important;
+  }
+
+  /* Title column */
+  .setlist-table th:nth-child(2),
+  .setlist-table td:nth-child(2) {
+    width: 20% !important;
+    padding-left: 8px !important;
+  }
+
+  /* Notes column - ensure minimum height for two lines */
+  .setlist-table th:nth-child(3),
+  .setlist-table td:nth-child(3) {
+    width: 75% !important;
+    display: table-cell !important;
+    min-width: 0 !important;
+    min-height: calc(2 * 9px * 1.2) !important;
+    height: auto !important;
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
+    line-height: 1.2 !important;
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+  }
+
+  /* Ensure table cells can expand */
+  .setlist-table tr {
+    height: auto !important;
+    min-height: calc(2 * 9px * 1.2 + 6px) !important; /* 2 lines + padding */
+  }
+
+  /* Force table layout to respect heights */
+  .setlist-table {
+    table-layout: fixed !important;
+    height: auto !important;
+  }
+
+  /* Hide actions column */
+  .setlist-table th:nth-child(4),
+  .setlist-table td:nth-child(4) {
+    display: none !important;
+  }
+
+  /* Card styling */
+  .card {
+    margin: 0 !important;
+    padding: 2px !important;
+    box-shadow: none !important;
+    width: 100% !important;
+  }
+
+  /* Ensure text is visible */
+  body {
+    color: black !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0.1in !important;  /* Minimal margins */
+    width: 100% !important;
+  }
+
+  /* Set list title */
+  .setlist-title {
+    font-size: 10px !important;
+    margin: 0 0 2px 0 !important;
+  }
+
+  /* Hide the library card */
+  .card:first-of-type {
+    display: none !important;
   }
 }
 
@@ -1131,5 +1230,56 @@ mark {
 
 .library-title.collapsed .collapse-icon {
   transform: rotate(-90deg);
+}
+
+/* Add to the existing <style> section */
+@media print {
+  /* Hide non-essential elements when printing */
+  .hero, 
+  .song-form,
+  .library-controls,
+  .setlist-controls,
+  button,
+  input[type="file"] {
+    display: none !important;
+  }
+
+  /* Compact table layout for printing */
+  .setlist-table {
+    width: auto !important;
+    margin: 0;
+  }
+
+  .setlist-table th,
+  .setlist-table td {
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+
+  /* Make title column reasonable width */
+  .setlist-table th:nth-child(2),
+  .setlist-table td:nth-child(2) {
+    max-width: 200px;
+    width: auto !important;
+  }
+
+  /* Adjust notes column */
+  .setlist-table th:nth-child(3),
+  .setlist-table td:nth-child(3) {
+    max-width: 300px;
+  }
+
+  /* Remove any margins and padding from containers */
+  .card {
+    margin: 0 !important;
+    padding: 8px !important;
+    box-shadow: none !important;
+  }
+
+  /* Hide the library card entirely */
+  .card:first-of-type {
+    display: none !important;
+  }
 }
 </style>
