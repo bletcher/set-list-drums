@@ -537,6 +537,13 @@ button:active {
 }
 
 @media print {
+  /* Force background printing */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
   /* Common print styles */
   .hero, 
   .song-form,
@@ -580,12 +587,14 @@ button:active {
     font-weight: bold !important;
   }
 
-  /* Alternate row colors */
-  .setlist-table tr:nth-child(even) {
+  /* Alternate row colors - only for song rows */
+  .setlist-table tbody tr.song-row:nth-child(4n+1),
+  .setlist-table tbody tr.song-row:nth-child(4n+2) {
     background-color: #f0f0f0 !important;
   }
 
-  .setlist-table tr:nth-child(odd) {
+  .setlist-table tbody tr.song-row:nth-child(4n+3),
+  .setlist-table tbody tr.song-row:nth-child(4n+4) {
     background-color: white !important;
   }
 
