@@ -263,17 +263,19 @@ function setupEventListeners() {
         <button data-action="print">Print</button>
         <button data-action="clear">Clear</button>
       </div>
-      <table class="setlist-table">
-        <thead>
-          <tr>
-            <th>Order</th>
-            <th>Title</th>
-            <th>Notes</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="setlist-table-container">
+        <table class="setlist-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Title</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -1290,5 +1292,100 @@ mark {
   .card:first-of-type {
     display: none !important;
   }
+}
+
+/* Library container */
+.library-content {
+  max-height: 500px;  /* Fixed height for scroll */
+  overflow-y: auto;   /* Enable vertical scrolling */
+  position: relative; /* For sticky header */
+}
+
+/* Make the table header sticky */
+.library-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--card-bg);
+  z-index: 1;
+}
+
+/* Ensure header cells have bottom border */
+.library-table th {
+  border-bottom: 2px solid var(--border);
+  box-shadow: 0 1px 0 0 var(--border); /* Extra border for visual separation */
+}
+
+/* Add smooth scrolling */
+.library-content {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Add subtle scrollbar styling */
+.library-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.library-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.library-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.library-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Add after the library scroll styles */
+
+/* Set list container */
+.setlist-table-container {
+  max-height: 500px;  /* Fixed height for scroll */
+  overflow-y: auto;   /* Enable vertical scrolling */
+  position: relative; /* For sticky header */
+  margin-top: 1rem;
+}
+
+/* Make the set list table header sticky */
+.setlist-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--card-bg);
+  z-index: 1;
+}
+
+/* Ensure set list header cells have bottom border */
+.setlist-table th {
+  border-bottom: 2px solid var(--border);
+  box-shadow: 0 1px 0 0 var(--border);
+}
+
+/* Add smooth scrolling */
+.setlist-table-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Add subtle scrollbar styling */
+.setlist-table-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.setlist-table-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.setlist-table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.setlist-table-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 </style>

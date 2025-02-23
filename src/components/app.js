@@ -325,9 +325,9 @@ const deleteSong = (songId) => {
   const setIndex = window.state.currentSetList.indexOf(songId);
   if (setIndex > -1) {
     window.state.currentSetList.splice(setIndex, 1);
-    saveCurrentSetList();
-    renderSetList();
-  }
+  saveCurrentSetList();
+  renderSetList();
+}
 };
 
 window.clearSetList = () => {
@@ -487,53 +487,38 @@ window.loadLibraryFromFile = loadLibraryFromFile;
 
 const saveSetListToFile = async () => {
   try {
-    let existingHandle = null;
-    if (window.state.setListFileHandle) {
-      existingHandle = window.state.setListFileHandle;
-    }
+    const filename = window.state.setListFileName || 'setList.json';
 
+    const options = {
+      suggestedName: filename,
+      types: [{
+        description: 'JSON File',
+        accept: {'application/json': ['.json']},
+      }],
+      excludeAcceptAllOption: false
+    };
+
+    // Try to get the handle for the current file
     let handle;
-    if ('showSaveFilePicker' in window) {
-      try {
-        const options = {
-          suggestedName: window.state.setListFileName || 'setList.json',
-          types: [{
-            description: 'JSON File',
-            accept: {'application/json': ['.json']},
-          }],
-          excludeAcceptAllOption: false,
-          multiple: false
-        };
-
-        if (existingHandle) {
-          options.startIn = await existingHandle.getParent();
-        }
-
-        handle = await window.showSaveFilePicker(options);
-        window.state.setListFileHandle = handle;
-      } catch (err) {
-        if (err.name === 'AbortError') return;
-        if (err.name === 'SecurityError' || err.name === 'NotAllowedError') {
-          downloadJSON(window.state.currentSetList, 'setList.json');
-          return;
-        }
-        throw err;
-      }
-    } else {
-      downloadJSON(window.state.currentSetList, 'setList.json');
-      return;
+    try {
+      handle = await window.showSaveFilePicker(options);
+      
+      // Save the file
+      const writable = await handle.createWritable();
+      await writable.write(JSON.stringify(window.state.currentSetList, null, 2));
+      await writable.close();
+      
+      // Update the filename state
+      window.state.setListFileName = handle.name;
+      localStorage.setItem('setListFileName', handle.name);
+      renderFileNames();
+    } catch (err) {
+      if (err.name === 'AbortError') return; // User cancelled
+      throw err;
     }
-
-    const writable = await handle.createWritable();
-    await writable.write(JSON.stringify(window.state.currentSetList, null, 2));
-    await writable.close();
-    
-    window.state.setListFileName = handle.name;
-    localStorage.setItem('setListFileName', handle.name);
-    renderFileNames();
   } catch (error) {
     console.error('Error saving set list:', error);
-    downloadJSON(window.state.currentSetList, 'setList.json');
+    alert('Error saving file. Please try again.');
   }
 };
 
