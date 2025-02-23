@@ -103,15 +103,19 @@ const renderLibrary = (searchTerm = '') => {
     <tr draggable="true" data-index="${song.index}" class="song-row">
       <td>${song.highlightedTitle}</td>
       <td>${song.notes || ''}</td>
-      <td>
-        <button data-action="add-to-set" data-id="${song.id}">Add to Set</button>
-        <button data-action="load-song" data-id="${song.id}">Load Song</button>
-        <button data-action="delete-song" data-id="${song.id}">Delete</button>
-        ${song.link ? `<button onclick="window.open('${song.link}', '_blank', 'noopener')">Link</button>` : ''}
+    </tr>
+    <tr class="action-row" data-index="${song.index}">
+      <td colspan="2">
+        <div class="action-buttons">
+          <button data-action="add-to-set" data-id="${song.id}">Add to Set</button>
+          <button data-action="load-song" data-id="${song.id}">Load Song</button>
+          <button data-action="delete-song" data-id="${song.id}">Delete</button>
+          ${song.link ? `<button onclick="window.open('${song.link}', '_blank', 'noopener')">Link</button>` : ''}
+        </div>
       </td>
     </tr>
     <tr class="groove-row" data-index="${song.index}">
-      <td colspan="3">
+      <td colspan="2">
         ${renderGroovePreview(song.groove, song.previewId)}
       </td>
     </tr>
@@ -207,15 +211,19 @@ const renderSetList = () => {
       <td>${index + 1}</td>
       <td>${song.title}</td>
       <td>${song.notes || ''}</td>
-      <td>
-        <button data-action="move-up" data-index="${index}">↑</button>
-        <button data-action="move-down" data-index="${index}">↓</button>
-        <button data-action="remove-from-set" data-index="${index}">×</button>
-        ${song.link ? `<button onclick="window.open('${song.link}', '_blank', 'noopener')">Link</button>` : ''}
+    </tr>
+    <tr class="action-row" data-index="${index}">
+      <td colspan="3">
+        <div class="action-buttons">
+          <button data-action="move-up" data-index="${index}">↑</button>
+          <button data-action="move-down" data-index="${index}">↓</button>
+          <button data-action="remove-from-set" data-index="${index}">×</button>
+          ${song.link ? `<button onclick="window.open('${song.link}', '_blank', 'noopener')">Link</button>` : ''}
+        </div>
       </td>
     </tr>
     <tr class="groove-row" data-index="${index}">
-      <td colspan="4">
+      <td colspan="3">
         ${renderGroovePreview(song.groove, song.previewId)}
       </td>
     </tr>

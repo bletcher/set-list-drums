@@ -475,40 +475,25 @@ button:active {
   border-bottom: none;
 }
 
-.library-table tr.song-row:nth-of-type(4n+1),
-.library-table tr.groove-row:nth-of-type(4n+2),
-.setlist-table tr.song-row:nth-of-type(4n+1),
-.setlist-table tr.groove-row:nth-of-type(4n+2) {
-  background-color: #f8fafc;
+/* Library table row shading */
+/* First set all rows to white */
+.library-table tbody tr {
+  background-color: white;
 }
 
-.library-table tr:hover,
-.setlist-table tr:hover {
-  background: #f1f5f9 !important;
-  transition: background-color 0.2s ease;
+/* Shade every other group of three rows (song, action, groove) */
+.library-table tbody tr:nth-child(6n+1),
+.library-table tbody tr:nth-child(6n+2),
+.library-table tbody tr:nth-child(6n+3) {
+  background-color: #f8fafc !important; /* Added !important to override any inheritance */
 }
 
-/* Highlight the groove row when hovering over the song row */
-.setlist-table tr:hover + tr.groove-row,
-.library-table tr:hover + tr.groove-row {
-  background: #f1f5f9 !important;
-}
-
-/* Highlight the song row when hovering over the groove row */
-.setlist-table tr.groove-row:hover,
-.library-table tr.groove-row:hover {
-  background: #f1f5f9 !important;
-}
-
-.setlist-table tr.groove-row:hover ~ tr.song-row[data-index="${attr(data-index)}"],
-.library-table tr.groove-row:hover ~ tr.song-row[data-index="${attr(data-index)}"] {
-  background: #f1f5f9 !important;
-}
-
-/* Add transition for smoother highlighting */
-.setlist-table tr, .library-table tr,
-.setlist-table tr.groove-row, .library-table tr.groove-row {
-  transition: background-color 0.2s ease;
+/* Keep hover effects */
+.library-table tbody tr:hover,
+.library-table tbody tr.song-row:hover + tr.action-row,
+.library-table tbody tr.song-row:hover + tr.action-row + tr.groove-row,
+.library-table tbody tr.action-row:hover + tr.groove-row {
+  background-color: #f1f5f9 !important;
 }
 
 .groove-row td {
@@ -1387,5 +1372,90 @@ mark {
 
 .setlist-table-container::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Update library table styles */
+.library-table th:nth-child(1),
+.library-table td:nth-child(1) {
+  width: 30%;  /* Title column */
+}
+
+.library-table th:nth-child(2),
+.library-table td:nth-child(2) {
+  width: 70%;  /* Notes column */
+}
+
+/* Keep the action buttons styling */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  flex-wrap: wrap;
+}
+
+/* Update the table header */
+.library-table thead tr th:last-child {
+  display: none;  /* Hide the Actions column header */
+}
+
+/* Set list table row shading */
+/* First set all rows to white */
+.setlist-table tbody tr {
+  background-color: white;
+}
+
+/* Shade every other group of three rows (song, action, groove) */
+.setlist-table tbody tr:nth-child(6n+1),
+.setlist-table tbody tr:nth-child(6n+2),
+.setlist-table tbody tr:nth-child(6n+3) {
+  background-color: #f8fafc !important;
+}
+
+/* Keep hover effects for all three rows */
+.setlist-table tbody tr:hover,
+.setlist-table tbody tr.song-row:hover + tr.action-row,
+.setlist-table tbody tr.song-row:hover + tr.action-row + tr.groove-row,
+.setlist-table tbody tr.action-row:hover + tr.groove-row {
+  background-color: #f1f5f9 !important;
+}
+
+/* Update set list table column widths */
+.setlist-table th:nth-child(1),
+.setlist-table td:nth-child(1) {
+  width: 10%;  /* Order number */
+}
+
+.setlist-table th:nth-child(2),
+.setlist-table td:nth-child(2) {
+  width: 30%;  /* Title */
+}
+
+.setlist-table th:nth-child(3),
+.setlist-table td:nth-child(3) {
+  width: 60%;  /* Notes */
+}
+
+/* Move set list action buttons to their own row */
+.setlist-table tr.action-row td {
+  padding-top: 0;
+}
+
+.setlist-table .action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  flex-wrap: wrap;
+}
+
+/* Hide the actions column */
+.setlist-table th:nth-child(4),
+.setlist-table td:nth-child(4) {
+  display: none;
+}
+
+/* Keep hover effects */
+.setlist-table tbody tr:hover,
+.setlist-table tbody tr.song-row:hover + tr.groove-row {
+  background-color: #f1f5f9 !important;
 }
 </style>
