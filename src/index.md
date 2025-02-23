@@ -653,6 +653,57 @@ button:active {
   .card:first-of-type {
     display: none !important;
   }
+
+  /* Make sure scrollable containers show all content when printing */
+  .setlist-table-container {
+    max-height: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Keep table layout clean for printing */
+  .setlist-table {
+    width: 100% !important;
+    margin: 0;
+    border-collapse: collapse;
+  }
+
+  .setlist-table th,
+  .setlist-table td {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+    border: 1px solid #ddd;
+  }
+
+  /* Column widths for print */
+  .setlist-table th:nth-child(1),
+  .setlist-table td:nth-child(1) {
+    width: 10% !important;  /* Order number */
+  }
+
+  .setlist-table th:nth-child(2),
+  .setlist-table td:nth-child(2) {
+    width: 25% !important;  /* Title */
+  }
+
+  .setlist-table th:nth-child(3),
+  .setlist-table td:nth-child(3) {
+    width: 65% !important;  /* Notes */
+  }
+
+  /* Ensure all content is visible */
+  .setlist-table tr {
+    page-break-inside: avoid;
+  }
+
+  /* Keep alternating colors for print */
+  .setlist-table tbody tr:nth-child(6n+1),
+  .setlist-table tbody tr:nth-child(6n+2),
+  .setlist-table tbody tr:nth-child(6n+3) {
+    background-color: #f8fafc !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }
 
 /* Update the list-container style */
