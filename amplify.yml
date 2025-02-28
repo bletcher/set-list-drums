@@ -27,4 +27,8 @@ frontend:
       status: 200
     - source: /drums/<*>
       target: /drums/index.html
-      status: 200 
+      status: 200
+  proxies:
+    - path: '/drums'
+      target: 'https://main.d2jp1xzgngsl2t.amplifyapp.com'
+      status: 200

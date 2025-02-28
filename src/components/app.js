@@ -1,11 +1,19 @@
 // State management
-window.state = {
+window.state = window.state || {
   songLibrary: new Map(),
   currentSetList: [],
   setLists: [],
   libraryFileName: localStorage.getItem('libraryFileName'),
   setListFileName: localStorage.getItem('setListFileName')
 };
+
+// Variables for UI control
+let isFileOperationInProgress = false;
+let autoScrollInterval = null;
+
+// Add a global drag scroll handler to the document 
+let dragScrollActive = false;
+let lastClientY = 0;
 
 // Default songs - keep it empty
 const getDefaultSongs = () => [];
@@ -192,106 +200,212 @@ const renderLibrary = (searchTerm = '') => {
   });
 };
 
-const renderSetList = () => {
+// Update the renderSetList function to highlight matches without filtering
+const renderSetList = (searchTerm = '') => {
   const tbody = document.querySelector('.setlist-table tbody');
   
-  // Generate unique IDs for each song in the setlist
-  const setlistSongs = window.state.currentSetList.map((songId, index) => {
-    const song = window.state.songLibrary.get(songId);
-    if (!song) return null;
-    return {
-      ...song,
-      previewId: `setlist-preview-${song.id}-${index}`
-    };
-  }).filter(Boolean);
+  // Clear the existing table
+  tbody.innerHTML = '';
   
-  // Render the HTML
-  tbody.innerHTML = setlistSongs.map((song, index) => `
-    <tr draggable="true" data-index="${index}" class="song-row">
-      <td>${index + 1}</td>
-      <td>${song.title}</td>
-      <td>${song.notes || ''}</td>
-    </tr>
-    <tr class="action-row" data-index="${index}">
+  // Track the first matching row for scrolling
+  let firstMatchRow = null;
+  
+  // Render all songs in the set list (no filtering)
+  window.state.currentSetList.forEach((songId, index) => {
+    const song = window.state.songLibrary.get(songId);
+    if (!song) return;
+    
+    // Check if this song matches the search term
+    const matchesSearch = searchTerm && (
+      song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      song.notes.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    // Create and add the main song row
+    const songRow = document.createElement('tr');
+    songRow.className = 'song-row';
+    if (matchesSearch) songRow.classList.add('search-match');
+    songRow.dataset.index = index;
+    songRow.draggable = true;
+    
+    // Create an order cell with a position selector
+    const orderCell = document.createElement('td');
+    orderCell.className = 'order-cell';
+
+    // Create the position selector
+    const positionSelector = document.createElement('div');
+    positionSelector.className = 'position-selector';
+    positionSelector.innerHTML = `
+      <span class="position-number" title="Click to change position">${index + 1}</span>
+      <select class="position-select" style="display: none;">
+        ${Array.from({length: window.state.currentSetList.length}, (_, i) => 
+          `<option value="${i}" ${i === index ? 'selected' : ''}>${i + 1}</option>`
+        ).join('')}
+      </select>
+    `;
+
+    orderCell.appendChild(positionSelector);
+    songRow.appendChild(orderCell);
+
+    // Add the title and notes cells
+    const titleCell = document.createElement('td');
+    const highlightedTitle = searchTerm ? 
+      highlightMatch(song.title, searchTerm) : 
+      song.title;
+    titleCell.innerHTML = highlightedTitle;
+    songRow.appendChild(titleCell);
+
+    const notesCell = document.createElement('td');
+    notesCell.innerHTML = searchTerm ? highlightMatch(song.notes || '', searchTerm) : (song.notes || '');
+    songRow.appendChild(notesCell);
+
+    tbody.appendChild(songRow);
+    
+    // Add event listeners for the position selector
+    const numberDisplay = positionSelector.querySelector('.position-number');
+    const select = positionSelector.querySelector('.position-select');
+
+    // Make the number clickable
+    numberDisplay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      numberDisplay.style.display = 'none';
+      select.style.display = 'inline-block';
+      select.focus();
+    });
+
+    // Optional: Show dropdown on hover
+    numberDisplay.addEventListener('mouseenter', () => {
+      numberDisplay.classList.add('hover-effect');
+    });
+
+    numberDisplay.addEventListener('mouseleave', () => {
+      numberDisplay.classList.remove('hover-effect');
+    });
+
+    select.addEventListener('change', (e) => {
+      const newPosition = parseInt(e.target.value);
+      const currentPosition = index;
+      
+      if (newPosition !== currentPosition) {
+        // Move the song
+        const [movedSong] = window.state.currentSetList.splice(currentPosition, 1);
+        window.state.currentSetList.splice(newPosition, 0, movedSong);
+        
+        saveCurrentSetList();
+        renderSetList(searchTerm);
+      }
+    });
+
+    select.addEventListener('blur', () => {
+      numberDisplay.style.display = 'inline-block';
+      select.style.display = 'none';
+    });
+    
+    // Save reference to first matching row for scrolling
+    if (matchesSearch && !firstMatchRow) {
+      firstMatchRow = songRow;
+    }
+    
+    // Add drag events to the song row
+    songRow.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', index.toString());
+      songRow.classList.add('dragging');
+    });
+
+    songRow.addEventListener('dragend', () => {
+      songRow.classList.remove('dragging');
+    });
+
+    songRow.addEventListener('dragover', e => {
+      e.preventDefault();
+      songRow.classList.add('drop-target');
+    });
+
+    songRow.addEventListener('dragleave', () => {
+      songRow.classList.remove('drop-target');
+    });
+
+    songRow.addEventListener('drop', e => {
+      e.preventDefault();
+      songRow.classList.remove('drop-target');
+      
+      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+      const toIndex = parseInt(songRow.dataset.index);
+      
+      if (fromIndex !== toIndex) {
+        console.log(`Drag and drop: Moving from ${fromIndex} to ${toIndex}`);
+        
+        // Move the song
+        const [moved] = window.state.currentSetList.splice(fromIndex, 1);
+        window.state.currentSetList.splice(toIndex, 0, moved);
+        
+        saveCurrentSetList();
+        renderSetList(searchTerm);
+      }
+    });
+    
+    // Create and add the action buttons row
+    const actionRow = document.createElement('tr');
+    actionRow.className = 'action-row';
+    actionRow.dataset.index = index;
+    actionRow.innerHTML = `
       <td colspan="3">
         <div class="action-buttons">
-          <button data-action="move-up" data-index="${index}">↑</button>
-          <button data-action="move-down" data-index="${index}">↓</button>
-          <button data-action="remove-from-set" data-index="${index}">×</button>
+          <button onclick="window.handleSetlistAction('move-up', ${index})">↑</button>
+          <button onclick="window.handleSetlistAction('move-down', ${index})">↓</button>
+          <button onclick="window.handleSetlistAction('remove-from-set', ${index})">×</button>
           ${song.link ? `<button onclick="window.open('${song.link}', '_blank', 'noopener')">Link</button>` : ''}
         </div>
       </td>
-    </tr>
-    <tr class="groove-row" data-index="${index}">
-      <td colspan="3">
-        ${renderGroovePreview(song.groove, song.previewId)}
-      </td>
-    </tr>
-  `).join('');
-
-  // Add drag and drop handlers
-  const rows = tbody.querySelectorAll('.song-row');
-  rows.forEach(row => {
-    row.addEventListener('dragstart', e => {
-      e.dataTransfer.setData('text/plain', row.dataset.index);
-      row.classList.add('dragging');
-    });
-
-    row.addEventListener('dragend', e => {
-      row.classList.remove('dragging');
-    });
-
-    row.addEventListener('dragover', e => {
-      e.preventDefault();
-      const draggingRow = tbody.querySelector('.dragging');
-      if (draggingRow) {
-        const fromIndex = parseInt(draggingRow.dataset.index);
-        const toIndex = parseInt(row.dataset.index);
-        if (fromIndex !== toIndex) {
-          row.classList.add('drop-target');
-        }
-      }
-    });
-
-    row.addEventListener('dragleave', e => {
-      row.classList.remove('drop-target');
-    });
-
-    row.addEventListener('drop', e => {
-      e.preventDefault();
-      row.classList.remove('drop-target');
-      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
-      const toIndex = parseInt(row.dataset.index);
-      if (fromIndex !== toIndex) {
-        // Move song in setlist
-        const [movedSong] = window.state.currentSetList.splice(fromIndex, 1);
-        window.state.currentSetList.splice(toIndex, 0, movedSong);
-        saveCurrentSetList();
-        renderSetList();
-      }
-    });
-  });
-
-  // Render ABC notation for each preview
-  setlistSongs.forEach(song => {
-    window.renderScore(song.groove, song.previewId, song.settings);
-  });
-
-  // Add hover handlers for groove rows
-  const grooveRows = tbody.querySelectorAll('.groove-row');
-  grooveRows.forEach(grooveRow => {
-    grooveRow.addEventListener('mouseenter', () => {
-      const index = grooveRow.dataset.index;
-      const songRow = tbody.querySelector(`.song-row[data-index="${index}"]`);
-      if (songRow) songRow.style.backgroundColor = '#f1f5f9';
-    });
+    `;
+    tbody.appendChild(actionRow);
     
-    grooveRow.addEventListener('mouseleave', () => {
-      const index = grooveRow.dataset.index;
-      const songRow = tbody.querySelector(`.song-row[data-index="${index}"]`);
-      if (songRow) songRow.style.backgroundColor = '';
-    });
+    // Create and add the groove preview row
+    const grooveRow = document.createElement('tr');
+    grooveRow.className = 'groove-row';
+    grooveRow.dataset.index = index;
+    
+    const previewId = `setlist-preview-${song.id}-${index}`;
+    grooveRow.innerHTML = `
+      <td colspan="3">
+        ${renderGroovePreview(song.groove, previewId)}
+      </td>
+    `;
+    tbody.appendChild(grooveRow);
+    
+    // Render the score
+    window.renderScore(song.groove, previewId, song.settings);
   });
+  
+  // Scroll to the first matching row if one was found
+  if (firstMatchRow && searchTerm) {
+    console.log('Found matching song, will scroll to:', firstMatchRow);
+    
+    // Increase timeout to ensure DOM is fully updated before scrolling
+    setTimeout(() => {
+      const container = document.querySelector('.setlist-table-container');
+      if (container && firstMatchRow) {
+        // Calculate position more accurately
+        const containerTop = container.getBoundingClientRect().top;
+        const rowTop = firstMatchRow.getBoundingClientRect().top;
+        const scrollPosition = container.scrollTop + (rowTop - containerTop) - 80;
+        
+        console.log('Scrolling to position:', scrollPosition);
+        
+        // Perform the scroll
+        container.scrollTo({
+          top: scrollPosition,
+          behavior: 'smooth'
+        });
+        
+        // Add a highlight animation to draw attention
+        firstMatchRow.classList.add('highlight-pulse');
+        setTimeout(() => {
+          firstMatchRow.classList.remove('highlight-pulse');
+        }, 2000);
+      }
+    }, 200); // Longer timeout for more reliable scrolling
+  }
 };
 
 // List Management Functions
@@ -307,16 +421,89 @@ window.addToSetList = (songId) => {
   renderSetList();
 };
 
-window.moveSong = (index, direction) => {
-  const newIndex = index + direction;
-  if (newIndex < 0 || newIndex >= window.state.currentSetList.length) return;
+// Update the handleSetlistAction function to center on the moved song
+window.handleSetlistAction = (action, index) => {
+  // Make sure index is a number
+  index = Number(index);
+  console.log(`Global handler: ${action} for index ${index}`);
+  console.log(`Current setlist before action:`, [...window.state.currentSetList]);
   
-  const temp = window.state.currentSetList[index];
-  window.state.currentSetList[index] = window.state.currentSetList[newIndex];
-  window.state.currentSetList[newIndex] = temp;
+  // Track where we need to scroll to after the action
+  let targetIndex = null;
+  
+  if (action === 'move-up') {
+    if (index > 0) {
+      console.log(`Moving song ${index} up to position ${index-1}`);
+      // Just move one item instead of trying to move two
+      const removed = window.state.currentSetList.splice(index, 1)[0];
+      window.state.currentSetList.splice(index-1, 0, removed);
+      console.log(`New setlist:`, [...window.state.currentSetList]);
+      
+      // Set target index to the new position of the song (one position up)
+      targetIndex = index - 1;
+    } else {
+      console.log(`Can't move up: already at top`);
+    }
+  } 
+  else if (action === 'move-down') {
+    if (index < window.state.currentSetList.length - 1) {
+      console.log(`Moving song ${index} down to position ${index+1}`);
+      // Just move one item instead of trying to move two
+      const removed = window.state.currentSetList.splice(index, 1)[0];
+      window.state.currentSetList.splice(index+1, 0, removed);
+      console.log(`New setlist:`, [...window.state.currentSetList]);
+      
+      // Set target index to the new position of the song (one position down)
+      targetIndex = index + 1;
+    } else {
+      console.log(`Can't move down: already at bottom`);
+    }
+  }
+  else if (action === 'remove-from-set') {
+    console.log(`Removing song at index ${index}`);
+    window.state.currentSetList.splice(index, 1);
+  }
   
   saveCurrentSetList();
   renderSetList();
+  
+  // Scroll to the moved song if we have a target
+  if (targetIndex !== null) {
+    setTimeout(() => {
+      const container = document.querySelector('.setlist-table-container');
+      const rows = document.querySelectorAll('.setlist-table tr.song-row');
+      
+      // Find the song row with the new index
+      const targetRow = Array.from(rows).find(row => 
+        parseInt(row.dataset.index) === targetIndex);
+      
+      if (targetRow && container) {
+        console.log(`Scrolling to song at new position ${targetIndex}`);
+        
+        // Calculate position for centering
+        const containerRect = container.getBoundingClientRect();
+        const rowRect = targetRow.getBoundingClientRect();
+        
+        // Calculate where to scroll to center the row
+        const scrollTop = container.scrollTop + 
+                         (rowRect.top - containerRect.top) - 
+                         (containerRect.height / 2) + 
+                         (rowRect.height / 2);
+        
+        // Scroll to that position
+        container.scrollTo({
+          top: scrollTop,
+          behavior: 'smooth'
+        });
+        
+        // Add highlight animation
+        targetRow.classList.add('highlight-pulse');
+        setTimeout(() => {
+          targetRow.classList.remove('highlight-pulse');
+        }, 2000);
+      }
+    }, 100);
+  }
 };
 
 window.removeFromSet = (index) => {
@@ -395,9 +582,6 @@ const requestFileSystemAccess = async () => {
     return false;
   }
 };
-
-// Add a flag to track if a file operation is in progress
-let isFileOperationInProgress = false;
 
 // Update saveLibraryToFile to use the flag
 const saveLibraryToFile = async () => {
@@ -1082,17 +1266,6 @@ const setupEventHandlers = () => {
     if (action === 'load-song') window.loadSong(parseInt(id));
   });
 
-  // Set up setlist table actions
-  document.querySelector('.setlist-table')?.addEventListener('click', e => {
-    const button = e.target.closest('button');
-    if (!button) return;
-    
-    const { action, index } = button.dataset;
-    if (action === 'move-up') window.moveSong(parseInt(index), -1);
-    if (action === 'move-down') window.moveSong(parseInt(index), 1);
-    if (action === 'remove-from-set') window.removeFromSet(parseInt(index));
-  });
-
   // Set up file action handlers
   document.querySelector('[data-action="save-library"]')?.addEventListener('click', window.saveLibraryToFile);
   document.querySelector('[data-action="load-library"]')?.addEventListener('click', window.loadLibraryFromFile);
@@ -1110,6 +1283,76 @@ const setupEventHandlers = () => {
       window.renderScore(groove);
     }
   });
+
+  // Set up drag scrolling
+  document.addEventListener('dragover', e => {
+    if (!e.target.closest('.setlist-table')) return;
+    
+    lastClientY = e.clientY;
+    
+    if (!dragScrollActive) {
+      dragScrollActive = true;
+      requestAnimationFrame(dragScroll);
+    }
+  });
+
+  document.addEventListener('dragend', () => {
+    dragScrollActive = false;
+  });
+
+  document.addEventListener('drop', () => {
+    dragScrollActive = false;
+  });
+
+  // Function to handle scroll during drag
+  function dragScroll() {
+    if (!dragScrollActive) return;
+    
+    const container = document.querySelector('.setlist-table-container');
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    
+    // Calculate distance from the container edges
+    const distanceFromTop = rect.top - lastClientY;
+    const distanceFromBottom = lastClientY - rect.bottom;
+    
+    // Much higher base speed and maximum speed
+    const baseSpeed = 15;        // 3x the previous value
+    const maxSpeed = 200;        // More than 2x the previous max
+    const accelerationFactor = 8; // Much more acceleration
+    
+    let scrollSpeed = 0;
+    
+    // Scroll up when mouse is above container
+    if (distanceFromTop > 0) {
+      // Exponential acceleration for extreme speed at distance
+      scrollSpeed = -Math.min(maxSpeed, baseSpeed + (Math.pow(distanceFromTop, 1.5) / 5));
+    } 
+    // Scroll down when mouse is below container
+    else if (distanceFromBottom > 0) {
+      // Exponential acceleration for extreme speed at distance
+      scrollSpeed = Math.min(maxSpeed, baseSpeed + (Math.pow(distanceFromBottom, 1.5) / 5));
+    }
+    
+    // Apply scrolling if needed
+    if (scrollSpeed !== 0) {
+      container.scrollTop += scrollSpeed;
+    }
+    
+    if (dragScrollActive) {
+      requestAnimationFrame(dragScroll);
+    }
+  }
+
+  // Add this to setupEventHandlers function
+  const setlistSearch = document.getElementById('setlist-search');
+  if (setlistSearch) {
+    setlistSearch.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.trim();
+      renderSetList(searchTerm);
+    });
+  }
 };
 
 // Remove duplicate initialization code
@@ -1187,78 +1430,6 @@ window.updateNoteDivision = (value) => {
   
   // Make sure click handlers are properly attached
   window.setupGridClickHandlers();
-};
-
-window.generateAbcNotation = (grooveString) => {
-  const bpm = document.querySelector('[name="bpmInput"]')?.value || '120';
-  const beatsPerBar = document.querySelector('[name="beatsPerBar"]')?.value || '4';
-  const beatUnit = document.querySelector('[name="beatUnit"]')?.value || '4';
-  const noteDivision = document.querySelector('[name="noteDivision"]')?.value || '16';
-  const measureCount = parseInt(document.querySelector('[name="measureCount"]').value) || 1;
-  
-  let abcString = `X:1
-L:1/${noteDivision}
-K:C perc
-M:${beatsPerBar}/${beatUnit}
-Q:1/4=${bpm}
-V:1 perc stafflines=5 stem=up
-%%barnumbers 0
-%%voicecombine 1
-%%stems 1 up
-%%beams 1 above
-%%stemheight 20
-%%beamslope 0.2
-[V:1] `;
-
-  // Process the grid pattern into ABC notation
-  const voices = {
-    'H': [],
-    'S': [],
-    'K': []
-  };
-
-  // Parse the groove string into voices
-  grooveString.trim().split('\n').forEach(line => {
-    const parts = line.trim().split('|');
-    const instrument = parts[0];
-    if (!parts[1]) return;
-
-    const pattern = parts[1];
-    voices[instrument] = pattern.split('').map(n => n === 'x');
-  });
-
-  // Convert to ABC notation
-  const notes = [];
-  const totalCells = voices.H.length;
-  const cellsPerMeasure = totalCells / measureCount;
-  
-  for (let i = 0; i < totalCells; i++) {
-    const chord = [
-      voices.H[i] ? '!style=x!g^' : 'z',  // Hi-hat
-      voices.S[i] ? 'c^' : 'z',           // Snare
-      voices.K[i] ? 'D^' : 'z'            // Kick
-    ];
-    notes.push(`[${chord.join('')}]`);
-    
-    // Add space between beats for beaming
-    const subdivisions = parseInt(noteDivision) / parseInt(beatUnit);
-    if ((i + 1) % subdivisions === 0 && i < totalCells - 1) {
-      notes.push(' ');
-    }
-    
-    // Add bar line between measures
-    if ((i + 1) % cellsPerMeasure === 0 && i < totalCells - 1) {
-      notes.push('|');
-      // Add a line break after every 2 measures
-      const currentMeasure = Math.floor((i + 1) / cellsPerMeasure);
-      if (currentMeasure % 2 === 0) {
-        notes.push('\n');
-      }
-    }
-  }
-  
-  abcString += notes.join('') + '|';
-  return abcString;
 };
 
 // Update example groove patterns to use a function that generates patterns based on current settings

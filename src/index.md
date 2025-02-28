@@ -257,11 +257,16 @@ function setupEventListeners() {
         <span class="filename"></span>
       </h3>
       <div class="setlist-controls">
-        <button data-action="save-setlist">Save Set List</button>
-        <button data-action="load-setlist">Load Set List</button>
-        <input type="file" id="setlist-file-input" style="display: none" accept=".json">
-        <button data-action="print">Print</button>
-        <button data-action="clear">Clear</button>
+        <div class="search-container">
+          <input type="text" id="setlist-search" placeholder="Search set list...">
+        </div>
+        <div class="button-group">
+          <button data-action="save-setlist">Save Set List</button>
+          <button data-action="load-setlist">Load Set List</button>
+          <input type="file" id="setlist-file-input" style="display: none" accept=".json">
+          <button data-action="print">Print</button>
+          <button data-action="clear">Clear</button>
+        </div>
       </div>
       <div class="setlist-table-container">
         <table class="setlist-table">
@@ -441,8 +446,27 @@ button:active {
 .setlist-controls {
   margin-bottom: 1.5rem;
   display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.button-group {
+  display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.search-container {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+#setlist-search {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+  margin-top: 0;
 }
 
 .library-table,
@@ -1508,5 +1532,88 @@ mark {
 .setlist-table tbody tr:hover,
 .setlist-table tbody tr.song-row:hover + tr.groove-row {
   background-color: #f1f5f9 !important;
+}
+
+/* Add this to your existing styles */
+.search-container {
+  margin-bottom: 1rem;
+}
+
+#setlist-search {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+/* Add this to your CSS styles */
+.search-match {
+  background-color: #f0f9ff !important; /* Light blue background */
+  border-left: 3px solid #0ea5e9 !important; /* Blue left border */
+}
+
+/* Add animation for highlighting search results */
+@keyframes highlight-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(14, 165, 233, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+}
+
+.highlight-pulse {
+  animation: highlight-pulse 1s ease-in-out 2;
+  position: relative;
+  z-index: 2;
+}
+
+/* Update position selector styling */
+.position-selector {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.position-number {
+  font-weight: bold;
+  min-width: 20px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+/* Add dropdown indicator to number */
+.position-number::after {
+  content: "▼";
+  font-size: 8px;
+  opacity: 0;
+  margin-left: 3px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: opacity 0.2s ease;
+}
+
+.position-number:hover::after, 
+.position-number.hover-effect::after {
+  opacity: 0.7;
+}
+
+.position-number:hover, 
+.position-number.hover-effect {
+  background-color: #e2e8f0;
+  color: #0284c7;
+}
+
+.position-select {
+  width: 60px;
+  padding: 2px;
+  border: 1px solid #e2e8f0;
+  border-radius: 3px;
+}
+
+.order-cell {
+  white-space: nowrap;
 }
 </style>

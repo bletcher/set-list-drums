@@ -28,6 +28,20 @@
     }
   },
   {
+    "id": 1740701141325,
+    "title": "Alligator boogaloo",
+    "groove": "H|xxxxxxxxxxxxxxxxxxxxxxxxxxxx----|\nS|----x--xx-----x--xx-x---x---x---|\nK|x---------x---------------x---x-|\n",
+    "notes": "",
+    "link": "https://open.spotify.com/track/2Wq889rsIlEG0l2ea9pE9J?si=ca1deed49ac24c72",
+    "settings": {
+      "bpm": "130",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "2"
+    }
+  },
+  {
     "id": 1739489412290,
     "title": "Amtrak to Brooklyn",
     "groove": "H|xxxxxxxxxx-x|\nS|----x-----x-|\nK|x--x-x-----x|\n",
@@ -37,6 +51,20 @@
       "bpm": "40",
       "beatsPerBar": "6",
       "beatUnit": "8",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1740700774571,
+    "title": "August 10",
+    "groove": "H|xxxxxxxxxxxxxxxx|\nS|----x-------x---|\nK|x-x----x-xx-----|\n",
+    "notes": "End on 4e+a",
+    "link": "https://open.spotify.com/track/4I59UjiR1vDGGdLmdvFoJO?si=52e1927c92b043ed",
+    "settings": {
+      "bpm": "80",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
       "noteDivision": "16",
       "measureCount": "1"
     }
@@ -77,6 +105,20 @@
     "link": "",
     "settings": {
       "bpm": "120",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1740699715119,
+    "title": "begin againers",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-------x-----x-|\n",
+    "notes": "",
+    "link": "https://open.spotify.com/track/70FsigyFPY1XtVr7NiHJH9?si=3182aaed14a44617",
+    "settings": {
+      "bpm": "86",
       "beatsPerBar": "4",
       "beatUnit": "4",
       "noteDivision": "16",
@@ -222,6 +264,20 @@
     }
   },
   {
+    "id": 1740700954597,
+    "title": "Footprints",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-------x-------|\n",
+    "notes": "",
+    "link": "",
+    "settings": {
+      "bpm": "100",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
     "id": 1739489698165,
     "title": "Green tea",
     "groove": "H|xxxxxxxxxxxxxxxx|\nS|----x-----x---x-|\nK|x-------------x-|\n",
@@ -257,6 +313,20 @@
     "link": "https://open.spotify.com/track/2F27kmdG1igxcDqGRxdDIa?si=275dfc3d1da242d0",
     "settings": {
       "bpm": "72",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1740700394082,
+    "title": "Hey jude",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-------x-------|\n",
+    "notes": "",
+    "link": "",
+    "settings": {
+      "bpm": "111",
       "beatsPerBar": "4",
       "beatUnit": "4",
       "noteDivision": "16",
