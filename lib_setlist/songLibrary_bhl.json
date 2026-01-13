@@ -70,6 +70,34 @@
     }
   },
   {
+    "id": 1753299529383,
+    "title": "Back at the chicken shack",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x---x---x---x---|\n",
+    "notes": "Shuffle",
+    "link": "https://open.spotify.com/track/0bv5vUJCvXM9G0cbjeikyY?si=dc16ea3d51404cbc",
+    "settings": {
+      "bpm": "110",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1753293250392,
+    "title": "Bambu",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-x----x--x-----|\n",
+    "notes": "",
+    "link": "https://open.spotify.com/track/13HKi0tiT8RNipO0wK8YlG?si=8e2a43190ce84722",
+    "settings": {
+      "bpm": "117",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
     "id": 1740256712191,
     "title": "Be encouraged",
     "groove": "H|x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-|\nS|----x-------x-------x----x--x---|\nK|x-x--x--x--------xx--x--x-------|\n",
@@ -153,12 +181,54 @@
     }
   },
   {
+    "id": 1753298643490,
+    "title": "Blue juice",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-x----x-x-x----|\n",
+    "notes": "",
+    "link": "https://open.spotify.com/track/4RxDOYplbTpBxy5KmF83Sd?si=0e630d57907c4856",
+    "settings": {
+      "bpm": "88",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
     "id": 1737822800344,
     "title": "Boogie on",
     "groove": "H|x-xxx-xxx-xxx-xx|\nS|----x-------x---|\nK|x--x--x---x---x-|\n",
     "notes": "",
     "settings": {
       "bpm": "105",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1746487800157,
+    "title": "Born under a bad sign",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-----x-x-x---x-|\n",
+    "notes": "Deliberate and heavy",
+    "link": "https://open.spotify.com/track/1HbOlAS9kF9d5j7WNQbin9?si=e107d70eb6584d0b",
+    "settings": {
+      "bpm": "",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1746487703261,
+    "title": "Brick y Brick",
+    "groove": "H|xxxxxxxxxxxxxxxx|\nS|----x-------x---|\nK|x-xx----x--x---x|\n",
+    "notes": "2 hand 16ths, ad lib kick",
+    "link": "https://open.spotify.com/track/0AQGpG0ZuqsKqSjM3HFuRd?si=ed5ad98b123b4a1b",
+    "settings": {
+      "bpm": "110",
       "beatsPerBar": "4",
       "beatUnit": "4",
       "noteDivision": "16",
@@ -250,6 +320,20 @@
     }
   },
   {
+    "id": 1753298983089,
+    "title": "Feel like making love",
+    "groove": "H|x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-|\nS|----x-------x-------x-------x---|\nK|x-------x-------x-x-----x-------|\n",
+    "notes": "Occasional 1+s on the kick",
+    "link": "https://open.spotify.com/track/7hzgk557YLr0722EFkmp9Z?si=f33086e21e6d458a",
+    "settings": {
+      "bpm": "87",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "2"
+    }
+  },
+  {
     "id": 1740255766973,
     "title": "Fire eater",
     "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-x-----x--x----|\n",
@@ -257,6 +341,20 @@
     "link": "https://open.spotify.com/tr8?si=7ac82f3932124a1d",
     "settings": {
       "bpm": "100",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1753293035888,
+    "title": "Flodd in Franklin Park",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x--x-x--x--x|\nK|x-------x-------|\n",
+    "notes": "Fast and light",
+    "link": "https://open.spotify.com/track/0URylSWsSffzeTVcpxWrSe?si=7b5d7f6cba65430f",
+    "settings": {
+      "bpm": "145",
       "beatsPerBar": "4",
       "beatUnit": "4",
       "noteDivision": "16",
@@ -306,6 +404,20 @@
     }
   },
   {
+    "id": 1753292920042,
+    "title": "Hamp's hump",
+    "groove": "H|x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-|\nS|----x--x--x--x------x--x--x--x--|\nK|x-------x--x--x-x-x-----x--x--x-|\n",
+    "notes": "open hat on 1+",
+    "link": "https://open.spotify.com/track/1QpDC9BJG8gWWdulfaVCvR?si=29078dbb5d904f08",
+    "settings": {
+      "bpm": "76",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "2"
+    }
+  },
+  {
     "id": 1739489147103,
     "title": "He bite me",
     "groove": "H|xxxxxxxxxxxxxxxx|\nS|----x-------x---|\nK|x------xx--x-x--|\n",
@@ -348,6 +460,20 @@
     }
   },
   {
+    "id": 1753291429548,
+    "title": "How does it feel",
+    "groove": "H|x---x---x---x---x---x---|\nS|------------x-----------|\nK|x----------------------x|\n",
+    "notes": "",
+    "link": "https://open.spotify.com/track/4oPNN7syJYSjzDhRerF966?si=533455b984114746",
+    "settings": {
+      "bpm": "112",
+      "beatsPerBar": "6",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
     "id": 1737918447601,
     "title": "I got loaded",
     "groove": "H|xxxxxxx-|\nS|--x--x--|\nK|x--x---x|\n",
@@ -362,6 +488,20 @@
     }
   },
   {
+    "id": 1753298436220,
+    "title": "If you want me to stay",
+    "groove": "H|x-x-x-x-x-x-x-x-----------------|\nS|----x-------x--------x------x---|\nK|x-x-----x-x---------------------|\n",
+    "notes": "Quick bridge in 2nd measure of groove above.",
+    "link": "https://open.spotify.com/track/7EuKQFOidGfkW0jXOAFu4E?si=50c35cb212a346b5",
+    "settings": {
+      "bpm": "108",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "2"
+    }
+  },
+  {
     "id": 1740256993628,
     "title": "Jan Jan",
     "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x--x-x--x---|\nK|x-x-----x-------|\n",
@@ -369,6 +509,34 @@
     "link": "https://open.spotify.com/track/7MWykwvTmhyWTNPhw4r3nz?si=db667b578fb24780",
     "settings": {
       "bpm": "140",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1746487954371,
+    "title": "Kickin up dust",
+    "groove": "H|xxxxxxxxxxxxxxxx|\nS|----x-------x--x|\nK|x-x--x--x-x--x--|\n",
+    "notes": "2 hand 16ths, swung. solo in the middle, study the breaks",
+    "link": "https://open.spotify.com/track/3AkXJYJhN6YmFwtzA3Ih3p?si=c43f557ea2234442",
+    "settings": {
+      "bpm": "90",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1753298718738,
+    "title": "Let's stay together",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-x-----x-x-----|\n",
+    "notes": "Off 16ths on ride",
+    "link": "https://open.spotify.com/track/7z54qLD01j8qH0HZKQAFdX?si=1fa23798f02b4d0d",
+    "settings": {
+      "bpm": "108",
       "beatsPerBar": "4",
       "beatUnit": "4",
       "noteDivision": "16",
@@ -458,6 +626,20 @@
     }
   },
   {
+    "id": 1753293363975,
+    "title": "Ms. Riverside",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-------x-x---x-|\n",
+    "notes": "Cross stick. Kick on 3 sometimes",
+    "link": "https://open.spotify.com/track/12V6R5glbqarp3P4swjX5I?si=7c8d50c1f5454f5e",
+    "settings": {
+      "bpm": "86",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
     "id": 1740189464300,
     "title": "Nardis",
     "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x------x--x--x--|\n",
@@ -514,6 +696,62 @@
     }
   },
   {
+    "id": 1753298566986,
+    "title": "Onsaya joy",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x-x-|\nK|x-x-------x-----|\n",
+    "notes": "Snare drag on 4+",
+    "link": "https://open.spotify.com/track/78e7D7pJbzRPCs2LToD6zu?si=ed3dbdec164a42fa",
+    "settings": {
+      "bpm": "108",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1753299154505,
+    "title": "Play it back",
+    "groove": "H|x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-|\nS|----x---------x-----x---------x-|\nK|--------x---x-----------x---x---|\n",
+    "notes": "Swung",
+    "link": "https://open.spotify.com/track/5Ur6hgQDvMvYm3NcSIt8IY?si=20ae77b704fb4cf3",
+    "settings": {
+      "bpm": "90",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "2"
+    }
+  },
+  {
+    "id": 1753299313856,
+    "title": "Red clay",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-----x-x---|\nK|x-xx----x-------|\n",
+    "notes": "3--ah hits",
+    "link": "https://open.spotify.com/track/2JdllRPH6a8NCpt2bpxpns?si=5823afa6c1f84dca",
+    "settings": {
+      "bpm": "135",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1753299453417,
+    "title": "Redbone",
+    "groove": "H|x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-|\nS|----x-------x-------x-------x---|\nK|x-------x-x---x---------x-x---x-|\n",
+    "notes": "",
+    "link": "https://open.spotify.com/track/3vQ4T78TTMOjQXGfXVKQJo?si=66832a7128844dd3",
+    "settings": {
+      "bpm": "80",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "2"
+    }
+  },
+  {
     "id": 1740243796099,
     "title": "So what",
     "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-------x-------|\n",
@@ -521,6 +759,20 @@
     "link": "https://open.spotify.com/track/4vLYewWIvqHfKtJDk8c8tq?si=0815acf9d6b74e00",
     "settings": {
       "bpm": "130",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
+    "id": 1753291570692,
+    "title": "Soul dream",
+    "groove": "H|x---x---x---x---|\nS|----x--x-x--x--x|\nK|x-------x-------|\n",
+    "notes": "Open hats on 2 and 4 on chorus",
+    "link": "https://open.spotify.com/track/3xOtUsX7A4HkTXEd0qICiq?si=03bae08354114290",
+    "settings": {
+      "bpm": "100",
       "beatsPerBar": "4",
       "beatUnit": "4",
       "noteDivision": "16",
@@ -570,6 +822,20 @@
     }
   },
   {
+    "id": 1753291696819,
+    "title": "The windjammer",
+    "groove": "H|x-x-x-x-x-x-x-x-|\nS|----x-------x---|\nK|x-x----x-x-x----|\n",
+    "notes": "",
+    "link": "https://open.spotify.com/track/2zotSAUaT5ea6LNimtlZSr?si=4fe224a6b0a746c3",
+    "settings": {
+      "bpm": "100",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "16",
+      "measureCount": "1"
+    }
+  },
+  {
     "id": 1740256168774,
     "title": "V-neck sweater",
     "groove": "H|x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-|\nS|----x-------x-------x-------x---|\nK|x-x----x-xx----xx------xx------x|\n",
@@ -581,6 +847,20 @@
       "beatUnit": "4",
       "noteDivision": "16",
       "measureCount": "2"
+    }
+  },
+  {
+    "id": 1753291302349,
+    "title": "Wayne's thang",
+    "groove": "H|xxxxxxxxxxxxxxxxxxxxxxxx|\nS|----x--x------x--x--x---|\nK|x--x--x-x--x--x-x--x--x-|\n",
+    "notes": "cymbal hit on 4 at the end of phrase.",
+    "link": "https://open.spotify.com/track/2EIgNXJzo5vn8Gf4hV6lq7?si=68c32a512eec413b",
+    "settings": {
+      "bpm": "188",
+      "beatsPerBar": "4",
+      "beatUnit": "4",
+      "noteDivision": "8",
+      "measureCount": "3"
     }
   },
   {

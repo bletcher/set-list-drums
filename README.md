@@ -29,6 +29,15 @@ A web application for creating, managing, and organizing drum patterns with musi
 - Remove songs from set list
 - Save/load set lists as JSON
 - Print set lists with notation
+- **Load set lists from URL** - Load set lists from Google Drive, Dropbox, or any public URL
+
+### Gig Mode
+- Full-screen mobile-optimized view for live performances
+- Large touch targets for easy navigation
+- Current song highlighting with progress indicator
+- Prev/Next navigation buttons
+- Swipe gestures for hands-free song navigation
+- Dark theme optimized for stage lighting
 
 ## Installation
 
@@ -48,13 +57,21 @@ Then visit http://localhost:3000
 
 ## Project Structure
 
-```ini
+```
 .
 ├─ src
-│  ├─ app.js                  # Core functionality and state management
-│  └─ index.md                # Main UI, styles, and event handlers
+│  ├─ components/
+│  │  ├─ app.js           # Main application entry point
+│  │  ├─ state.js         # Centralized state management
+│  │  ├─ file-io.js       # File save/load operations
+│  │  ├─ grid-editor.js   # Beat grid interface
+│  │  ├─ notation.js      # ABCJS notation rendering
+│  │  ├─ library.js       # Song library management
+│  │  ├─ setlist.js       # Set list & Gig Mode
+│  │  └─ utils.js         # Utility functions
+│  └─ index.md            # Main UI and styles
 ├─ .gitignore
-├─ observablehq.config.js     # App config file
+├─ observablehq.config.js # App config file
 ├─ package.json
 └─ README.md
 ```
@@ -69,6 +86,25 @@ Then visit http://localhost:3000
 | `npm run deploy` | Deploy to Observable |
 | `npm run clean` | Clear local data loader cache |
 
+## Remote Storage Support
+
+Set List Drums supports loading set lists from remote URLs, enabling workflows like:
+
+1. **Edit locally, use remotely**: Create set lists on your computer, upload to Google Drive, then load on your phone at a gig
+2. **Share with bandmates**: Share a set list URL for everyone to load the same list
+
+### Loading from Google Drive
+1. Save your set list locally (creates a JSON file)
+2. Upload the JSON file to Google Drive
+3. Right-click the file and select "Get link"
+4. Set sharing to "Anyone with the link can view"
+5. In Set List Drums, click "Load URL" and paste the link
+
+### Loading from Dropbox
+1. Upload your set list JSON to Dropbox
+2. Get a sharing link
+3. Paste the link in the "Load URL" dialog
+
 ## Dependencies
 
 - ABCJS (v6.2.3) for musical notation
@@ -78,14 +114,16 @@ Then visit http://localhost:3000
 ## Browser Support
 
 - Chrome/Edge (full support)
-- Firefox (all features except file system)
-- Safari (all features except file system)
+- Firefox (all features except local file system)
+- Safari (all features except local file system)
+- Mobile browsers (Gig Mode optimized for touch)
 
 ## Development Notes
 
-- Console logs included for debugging
+- Modular ES6 architecture with separate component files
 - Grid updates trigger notation re-renders
 - Pattern changes auto-save to localStorage
 - File operations use async/await pattern
+- Debounced search and render functions for performance
 
 For more details, see [Observable Framework documentation](https://observablehq.com/framework/getting-started).
