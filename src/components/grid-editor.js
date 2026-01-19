@@ -104,8 +104,10 @@ export const updateTimeSignature = () => {
   // Reinitialize grids with new size
   document.querySelectorAll('.beat-grid').forEach(grid => {
     grid.innerHTML = '';
-    grid.style.gridTemplateColumns = `repeat(${totalCells}, 1fr)`;
+    // Use fixed cell size for consistent rendering across all screen sizes
+    grid.style.gridTemplateColumns = `repeat(${totalCells}, 32px)`;
     grid.style.setProperty('--measure-count', measureCount);
+    grid.style.setProperty('--total-cells', totalCells);
 
     // Create cells
     for (let i = 0; i < totalCells; i++) {

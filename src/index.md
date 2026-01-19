@@ -2,6 +2,7 @@
 toc: false
 ---
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://paulrosen.github.io/abcjs/abcjs-audio.css"/>
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.3/dist/abcjs-basic-min.js"></script>
 <script type="module" src="./components/app.js"></script>
@@ -129,21 +130,21 @@ toc: false
             <span class="library-search-count search-count"></span>
           </div>
           <div class="button-group">
-            <button data-action="save-library">
+            <button data-action="save-library" title="Save Library">
               <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
                 <polyline points="17,21 17,13 7,13 7,21"/>
                 <polyline points="7,3 7,8 15,8"/>
               </svg>
-              Save
+              <span class="btn-text">Save</span>
             </button>
-            <button data-action="load-library">
+            <button data-action="load-library" title="Load Library">
               <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
                 <polyline points="17,8 12,3 7,8"/>
                 <line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
-              Load
+              <span class="btn-text">Load</span>
             </button>
           </div>
         </div>
@@ -174,52 +175,52 @@ toc: false
           <span class="setlist-search-count search-count"></span>
         </div>
         <div class="button-group">
-          <button data-action="save-setlist">
+          <button data-action="save-setlist" title="Save Set List">
             <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
               <polyline points="17,21 17,13 7,13 7,21"/>
               <polyline points="7,3 7,8 15,8"/>
             </svg>
-            Save
+            <span class="btn-text">Save</span>
           </button>
-          <button data-action="load-setlist">
+          <button data-action="load-setlist" title="Load Set List">
             <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
               <polyline points="17,8 12,3 7,8"/>
               <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            Load
+            <span class="btn-text">Load</span>
           </button>
-          <button data-action="load-url">
+          <button data-action="load-url" title="Load from URL">
             <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <line x1="2" y1="12" x2="22" y2="12"/>
               <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
             </svg>
-            Load URL
+            <span class="btn-text">URL</span>
           </button>
-          <button data-action="print">
+          <button data-action="print" title="Print Set List">
             <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="6,9 6,2 18,2 18,9"/>
               <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
               <rect x="6" y="14" width="12" height="8"/>
             </svg>
-            Print
+            <span class="btn-text">Print</span>
           </button>
-          <button data-action="gig-mode" class="btn-gig">
+          <button data-action="gig-mode" class="btn-gig" title="Enter Gig Mode">
             <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
               <line x1="8" y1="21" x2="16" y2="21"/>
               <line x1="12" y1="17" x2="12" y2="21"/>
             </svg>
-            Gig Mode
+            <span class="btn-text">Gig</span>
           </button>
-          <button data-action="clear" class="btn-danger">
+          <button data-action="clear" class="btn-danger" title="Clear Set List">
             <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3,6 5,6 21,6"/>
               <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
             </svg>
-            Clear
+            <span class="btn-text">Clear</span>
           </button>
         </div>
       </div>
@@ -900,23 +901,7 @@ input[name="measureCount"] {
   width: 80px;
 }
 
-/* Add responsive adjustments */
-@media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 1rem;
-  }
-  
-  .form-group input,
-  .form-group select {
-    width: auto;
-    min-width: 80px;
-  }
-  
-  .time-signature .time-inputs {
-    justify-content: center;
-  }
-}
+/* Note: Form responsive styles consolidated at end of file */
 
 /* Update time signature container */
 .time-signature .time-inputs {
@@ -946,121 +931,7 @@ input[name="measureCount"] {
   border-bottom: none !important;
 }
 
-/* Add these styles for the grid editor */
-.groove-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin: 1rem 0;
-  font-family: monospace;
-}
-
-.grid-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.instrument {
-  width: 2rem;
-  font-weight: bold;
-  text-align: right;
-}
-
-.beat-grid {
-  display: grid;
-  grid-template-columns: repeat(16, 1fr);
-  gap: 0;
-  border-radius: 4px;
-  position: relative;
-  flex: 1;
-}
-
-.grid-cell {
-  width: 32px;
-  height: 32px;
-  background: #f8fafc;  /* Light grey background */
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: all 0.15s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: monospace;
-  font-size: 1rem;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  border-radius: 4px;
-  margin: 1px;
-  box-shadow: inset 0 0 0 1px #e2e8f0;
-}
-
-.grid-cell.active {
-  background: var(--primary);
-  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
-  color: white;
-  transform: translateY(-1px);
-}
-
-.grid-cell:hover {
-  background: #f1f5f9;
-  box-shadow: inset 0 0 0 1px var(--primary);
-}
-
-.grid-cell.active:hover {
-  background: var(--primary-dark);
-  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
-}
-
-/* Make measure divisions more prominent */
-.grid-cell:nth-child(4n+1) {
-  box-shadow: inset 2px 0 0 #9ca3af, inset 0 0 0 1px #e2e8f0;
-}
-
-/* Stronger measure separation */
-.grid-cell[data-beat$=".1"] {
-  box-shadow: inset 3px 0 0 #374151, inset 0 0 0 1px #e2e8f0;
-}
-
-/* Make beat numbers more visible */
-.grid-cell[data-beat]:before {
-  /* Only show beat numbers for hi-hat row */
-  display: none;
-  font-weight: 600;
-  color: #374151;  /* Dark grey */
-}
-
-/* Show beat numbers only on hi-hat row */
-.beat-grid[data-instrument="H"] .grid-cell[data-beat]:before {
-  display: block;
-  content: attr(data-beat);
-  position: absolute;
-  top: -20px;
-  font-size: 0.8rem;
-}
-
-/* First beat of each measure more prominent */
-.grid-cell[data-beat^="1."]:before {
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.grid-cell.active {
-  background: var(--primary);
-  color: white;
-}
-
-.grid-cell:hover {
-  background: #f1f5f9;
-}
-
-.grid-cell.active:hover {
-  background: var(--primary-dark);
-}
-
-.grid-cell:active {
-  transform: scale(0.9);
-}
+/* Grid editor styles - see enhanced section below */
 
 /* Add time signature styles */
 .time-signature .time-inputs {
@@ -1084,171 +955,11 @@ input[name="measureCount"] {
   overflow-x: auto;
   margin: 1rem 0;
   padding-bottom: 0.5rem;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
-.groove-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  font-family: monospace;
-}
-
-.beat-grid {
-  display: grid;
-  grid-template-columns: repeat(16, 1fr);
-  gap: 0;
-  border-radius: 4px;
-  position: relative;
-  flex: 1;
-}
-
-.grid-cell {
-  width: 32px;
-  height: 32px;
-  background: #f8fafc;  /* Light grey background */
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: all 0.15s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: monospace;
-  font-size: 1rem;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  border-radius: 4px;
-  margin: 1px;
-  box-shadow: inset 0 0 0 1px #e2e8f0;
-}
-
-/* Add beat numbers */
-.grid-cell[data-beat]:before {
-  content: attr(data-beat);
-  position: absolute;
-  top: -20px;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-/* Stronger visual separation between beats */
-.grid-cell:nth-child(4n+1) {
-  border-left: 2px solid var(--border);
-}
-
-.grid-cell.active {
-  background: var(--primary);
-  color: white;
-}
-
-.grid-cell:hover {
-  background: #f1f5f9;
-}
-
-.grid-cell.active:hover {
-  background: var(--primary-dark);
-}
-
-.grid-cell:active {
-  transform: scale(0.9);
-}
-
-/* Mobile adjustments */
-@media (max-width: 768px) {
-  .grid-cell {
-    width: 40px;  /* Even larger for touch */
-    height: 40px;
-  }
-  
-  .instrument {
-    width: 3rem;  /* More space for labels */
-  }
-  
-  /* Stack form controls vertically */
-  .form-row {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  /* Make buttons larger */
-  button {
-    padding: 0.75rem 1rem;
-    min-height: 44px; /* iOS minimum */
-  }
-  
-  /* Adjust table layout */
-  .library-table td,
-  .setlist-table td {
-    padding: 1rem 0.5rem;
-  }
-  
-  /* Stack action buttons vertically */
-  td button {
-    display: block;
-    width: 100%;
-    margin: 0.5rem 0;
-  }
-  
-  /* Make staff notation fit */
-  #groove-preview,
-  .groove-preview {
-    max-width: 100%;
-    overflow-x: auto;
-  }
-}
-
-@media (max-width: 768px) {
-  .hero h1 {
-    font-size: 2rem;
-    padding: 0.5rem 0;
-  }
-  
-  .main-content {
-    padding: 0 1rem;
-  }
-  
-  .card {
-    padding: 1rem;
-  }
-}
-
-@media (max-width: 768px) {
-  /* Adjust table layout for mobile */
-  .library-table,
-  .setlist-table {
-    display: block;  /* Allow tables to scroll horizontally */
-    overflow-x: auto;
-    font-size: 0.9rem;
-  }
-  
-  /* Hide notes column on mobile */
-  .library-table th:nth-child(2),
-  .library-table td:nth-child(2),
-  .setlist-table th:nth-child(3),
-  .setlist-table td:nth-child(3) {
-    display: none;
-  }
-  
-  /* Make action buttons more compact */
-  td button {
-    padding: 0.5rem;
-    margin: 0.25rem 0;
-    min-width: 44px;
-  }
-  
-  /* Compact controls */
-  .library-controls,
-  .setlist-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  /* Add spacing between sections */
-  .card + .card {
-    margin-top: 2rem;
-  }
-}
+/* Note: Grid editor styles defined in enhanced section below */
+/* Note: Mobile styles are consolidated at the end of this file */
 
 /* Drag and drop styles */
 .song-row.dragging {
@@ -1930,36 +1641,22 @@ button {
   flex-wrap: wrap;
 }
 
-/* Responsive adjustments for new elements */
-@media (max-width: 768px) {
-  .toast {
-    left: 20px;
-    right: 20px;
-    bottom: 10px;
-  }
-
-  .clear-search {
-    right: 60px;
-  }
-
-  .button-group {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .search-container {
-    width: 100%;
-  }
-}
+/* Note: Toast and search mobile styles consolidated at end of file */
 
 /* ===== ENHANCED MODERN UI ===== */
 
 /* Enhanced Grid Editor */
 .groove-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   background: #f8fafc;
   padding: 1.5rem;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
+  font-family: monospace;
+  width: fit-content;
+  min-width: 100%;
 }
 
 .grid-row {
@@ -1985,17 +1682,18 @@ button {
 
 .beat-grid {
   display: grid;
+  grid-template-columns: repeat(16, 32px); /* Default, JS overrides dynamically */
   gap: 3px;
   border-radius: 6px;
-  flex: 1;
   background: #e2e8f0;
   padding: 4px;
   border-radius: var(--radius);
+  width: fit-content;
 }
 
 .grid-cell {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   background: white;
   cursor: pointer;
   transition: all 0.1s ease;
@@ -2008,6 +1706,8 @@ button {
   user-select: none;
   border-radius: 4px;
   border: 1px solid var(--border);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .grid-cell:hover:not(.active) {
@@ -2026,6 +1726,10 @@ button {
 
 .grid-cell.active:hover {
   background: var(--primary-dark);
+}
+
+.grid-cell:active {
+  transform: scale(0.95);
 }
 
 /* Beat number styling - REMOVED (using CSS-based cell numbers instead) */
@@ -2544,35 +2248,670 @@ textarea:focus-visible {
   background: #1e293b !important;
 }
 
-/* Mobile-specific Gig Mode improvements */
-@media (max-width: 768px) {
-  .gig-song-item {
-    padding: 1.5rem 1rem;
-  }
-
-  .gig-song-title {
-    font-size: 1.4rem;
-  }
-
-  .gig-song-number {
-    font-size: 1.75rem;
-    min-width: 3rem;
-  }
-
-  .gig-nav-btn {
-    min-height: 70px;
-    font-size: 1.2rem;
-  }
-
-  .gig-nav-btn svg {
-    width: 28px;
-    height: 28px;
-  }
-}
+/* Note: Gig mode mobile styles consolidated at end of file */
 
 /* Swipe hint animation */
 @keyframes swipe-hint {
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(10px); }
+}
+
+/* Button text wrapper for responsive visibility */
+.btn-text {
+  display: inline;
+}
+
+/* ========================================
+   COMPREHENSIVE MOBILE STYLES
+   ======================================== */
+
+/* Tablet breakpoint (768px) */
+@media (max-width: 768px) {
+  /* Hero - more compact */
+  .hero {
+    padding: 2rem 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .logo-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 {
+    font-size: 1.75rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+  }
+
+  /* Main content - tighter padding */
+  .main-content {
+    padding: 0 0.75rem 2rem;
+  }
+
+  /* Cards - reduce padding */
+  .card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: var(--radius);
+  }
+
+  .card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .card h3::after {
+    display: none;
+  }
+
+  /* Form - stack everything vertically */
+  .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .form-group {
+    width: 100%;
+  }
+
+  .form-group label {
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    font-size: 16px; /* Prevents iOS zoom */
+    padding: 0.6rem 0.75rem;
+  }
+
+  /* Time signature - inline on mobile */
+  .time-signature .time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .time-signature .time-inputs input {
+    width: 60px;
+    text-align: center;
+  }
+
+  /* Groove examples - wrap nicely */
+  .groove-examples {
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .groove-examples button {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  /* Beat grid - scrollable container */
+  .grid-scroll-container {
+    margin: 0.75rem 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+
+  .groove-grid {
+    padding: 0.75rem;
+    min-width: max-content;
+  }
+
+  .grid-row {
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .instrument {
+    width: 2rem;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+  }
+
+  .beat-grid {
+    gap: 2px;
+    padding: 3px;
+    width: fit-content;
+  }
+
+  /* Override the inline style grid-template-columns to use smaller cells */
+  .beat-grid[style*="grid-template-columns"] {
+    grid-template-columns: repeat(var(--total-cells, 16), 32px) !important;
+  }
+
+  .grid-cell {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.75rem;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  /* Groove preview - scrollable and smaller on mobile */
+  #groove-preview {
+    margin: 0.75rem 0;
+    padding: 0.75rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Scale down the notation on mobile */
+  #groove-preview svg {
+    max-width: none;
+    transform: scale(0.85);
+    transform-origin: left top;
+  }
+
+  .groove-notation svg {
+    max-width: none;
+    transform: scale(0.75);
+    transform-origin: left top;
+  }
+
+  /* Library header - stack on mobile */
+  .library-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .library-title {
+    margin-right: 0;
+    font-size: 1rem;
+  }
+
+  .library-controls {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .library-controls .search-container {
+    width: 100%;
+    max-width: none;
+  }
+
+  .library-controls .button-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Setlist controls - stack */
+  .setlist-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .setlist-controls .search-container {
+    width: 100%;
+    max-width: none;
+  }
+
+  .setlist-controls .button-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  /* Button styling for mobile grid */
+  .setlist-controls .button-group button {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-height: 50px;
+  }
+
+  .setlist-controls .button-group button .btn-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Search container fixes */
+  .search-container {
+    max-width: none;
+  }
+
+  .search-input,
+  #library-search,
+  #setlist-search {
+    width: 100%;
+    font-size: 16px;
+    padding: 0.6rem 2.5rem 0.6rem 0.75rem;
+  }
+
+  .clear-search {
+    right: 50px;
+  }
+
+  .search-count {
+    min-width: 40px;
+    font-size: 0.7rem;
+  }
+
+  /* Tables - card-style layout */
+  .library-table,
+  .setlist-table {
+    display: block;
+    border-radius: var(--radius);
+  }
+
+  .library-table thead,
+  .setlist-table thead {
+    display: none;
+  }
+
+  .library-table tbody,
+  .setlist-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .library-table tr,
+  .setlist-table tr {
+    display: block;
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .library-table tr.song-row,
+  .setlist-table tr.song-row {
+    border-bottom: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .library-table tr.action-row,
+  .setlist-table tr.action-row {
+    border-top: none;
+    border-bottom: none;
+    border-radius: 0;
+  }
+
+  .library-table tr.groove-row,
+  .setlist-table tr.groove-row {
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    margin-bottom: 0.75rem;
+  }
+
+  .library-table td,
+  .setlist-table td {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    border: none;
+  }
+
+  /* Order number - prominent display */
+  .setlist-table td:first-child {
+    display: inline-block;
+    padding: 0.5rem 0.75rem;
+    font-weight: bold;
+    background: var(--primary);
+    color: white;
+    border-radius: var(--radius) 0 var(--radius) 0;
+    position: absolute;
+    margin-top: -0.5rem;
+    margin-left: -0.75rem;
+  }
+
+  .setlist-table .song-row {
+    position: relative;
+    padding-top: 0.25rem;
+  }
+
+  /* Title cell */
+  .setlist-table td:nth-child(2),
+  .library-table td:nth-child(1) {
+    font-weight: 600;
+    font-size: 1rem;
+    padding-left: 3rem;
+  }
+
+  /* Notes cell - show on mobile but styled differently */
+  .setlist-table td:nth-child(3),
+  .library-table td:nth-child(2) {
+    display: block !important;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding-top: 0;
+  }
+
+  /* Empty notes - hide the cell */
+  .setlist-table td:nth-child(3):empty,
+  .library-table td:nth-child(2):empty {
+    display: none !important;
+    padding: 0;
+  }
+
+  /* Actions cell - hidden (moved to action-row) */
+  .setlist-table td:nth-child(4),
+  .library-table td:nth-child(3) {
+    display: none;
+  }
+
+  /* Action buttons row */
+  .action-row td {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+  }
+
+  .action-buttons button {
+    flex: 1;
+    min-width: calc(50% - 0.25rem);
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    min-height: 40px;
+  }
+
+  /* Groove row */
+  .groove-row td {
+    padding: 0.5rem !important;
+    overflow-x: auto;
+  }
+
+  .groove-notation {
+    padding: 0.5rem;
+    overflow-x: auto;
+  }
+
+  /* Library/setlist content containers */
+  .library-content,
+  .setlist-table-container {
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Toast - full width on mobile */
+  .toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    text-align: center;
+  }
+
+  /* Modal - full screen on mobile */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    max-width: none;
+    width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .url-input {
+    font-size: 16px;
+  }
+
+  .modal-footer {
+    padding: 1rem;
+  }
+
+  .modal-footer button {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  /* Position selector - larger touch target */
+  .position-number {
+    min-width: 32px;
+    padding: 4px 8px;
+    font-size: 1rem;
+  }
+
+  /* Filename badge */
+  .filename {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.7rem;
+  }
+
+  /* Gig Mode tablet improvements */
+  .gig-song-item {
+    padding: 1.25rem 1rem;
+  }
+
+  .gig-song-title {
+    font-size: 1.3rem;
+  }
+
+  .gig-song-number {
+    font-size: 1.5rem;
+    min-width: 2.5rem;
+  }
+
+  .gig-nav-btn {
+    min-height: 65px;
+    font-size: 1.1rem;
+  }
+
+  .gig-nav-btn svg {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* Small phone breakpoint (480px) */
+@media (max-width: 480px) {
+  /* Even more compact hero */
+  .hero {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .logo-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .hero h1 {
+    font-size: 1.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.85rem;
+  }
+
+  /* Tighter main content */
+  .main-content {
+    padding: 0 0.5rem 1.5rem;
+  }
+
+  .card {
+    padding: 0.75rem;
+  }
+
+  .card h3 {
+    font-size: 1rem;
+  }
+
+  /* Smaller grid cells on small phones */
+  .beat-grid[style*="grid-template-columns"] {
+    grid-template-columns: repeat(var(--total-cells, 16), 28px) !important;
+  }
+
+  .grid-cell {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px;
+    min-height: 28px;
+    font-size: 0.65rem;
+  }
+
+  /* Even smaller notation on small phones */
+  #groove-preview svg {
+    transform: scale(0.7);
+  }
+
+  .groove-notation svg {
+    transform: scale(0.6);
+  }
+
+  /* Setlist buttons - 2 columns */
+  .setlist-controls .button-group {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Action buttons - stack vertically */
+  .action-buttons button {
+    min-width: 100%;
+  }
+
+  /* Table cards - tighter */
+  .setlist-table td:nth-child(2),
+  .library-table td:nth-child(1) {
+    padding-left: 2.5rem;
+    font-size: 0.95rem;
+  }
+
+  /* Gig mode - smaller elements */
+  .gig-song-title {
+    font-size: 1.2rem;
+  }
+
+  .gig-song-number {
+    font-size: 1.5rem;
+    min-width: 2.5rem;
+  }
+
+  .gig-nav-btn {
+    min-height: 60px;
+    font-size: 1rem;
+  }
+
+  .gig-nav-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Landscape orientation fixes */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hero {
+    padding: 1rem;
+    flex-direction: row;
+    gap: 1rem;
+  }
+
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+  }
+
+  .hero-content {
+    text-align: left;
+  }
+
+  .hero h1 {
+    font-size: 1.25rem;
+    margin-bottom: 0;
+  }
+
+  .hero-subtitle {
+    display: none;
+  }
+
+  /* Gig mode landscape */
+  .gig-mode-header {
+    padding: 0.5rem 1rem;
+  }
+
+  .gig-song-item {
+    padding: 0.75rem;
+  }
+
+  .gig-mode-nav {
+    padding: 0.5rem;
+  }
+
+  .gig-nav-btn {
+    min-height: 50px;
+  }
+}
+
+/* iOS safe area support */
+@supports (padding: max(0px)) {
+  .main-content {
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+    padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  }
+
+  .gig-mode-overlay {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .gig-mode-nav {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .toast {
+    bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Touch interaction improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects that don't work on touch */
+  .card:hover {
+    box-shadow: var(--shadow);
+  }
+
+  button:hover {
+    transform: none;
+  }
+
+  .grid-cell:hover:not(.active) {
+    background: #f8fafc;
+    transform: none;
+  }
+
+  /* Larger touch targets */
+  button,
+  .grid-cell,
+  .position-number {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Active states for touch feedback */
+  button:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+
+  .grid-cell:active {
+    transform: scale(0.95);
+  }
 }
 </style>
