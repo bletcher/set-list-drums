@@ -38,7 +38,8 @@ import {
   enterGigMode,
   exitGigMode,
   gigModeNext,
-  gigModePrev
+  gigModePrev,
+  setupTempoBlinkControls
 } from './setlist.js';
 
 /**
@@ -232,6 +233,7 @@ const setupEventHandlers = () => {
   document.querySelector('[data-action="exit-gig-mode"]')?.addEventListener('click', exitGigMode);
   document.querySelector('[data-action="gig-prev"]')?.addEventListener('click', gigModePrev);
   document.querySelector('[data-action="gig-next"]')?.addEventListener('click', gigModeNext);
+  setupTempoBlinkControls();
 
   // Example groove buttons
   document.querySelector('.groove-examples')?.addEventListener('click', e => {

@@ -182,13 +182,12 @@ V:1 perc stafflines=5 stem=up
       showTempoRelative: true,
       defaultQpm: parseInt(bpm),
       maxspacing: 1.5,
-      scale: 0.7,
-      staffwidth: 500,
+      staffwidth: 700,
       measuresPerLine: 2
     },
     paddingright: 0,
     paddingleft: 0,
-    scale: 1.0,
+    responsive: 'resize',
     showTempo: true
   });
 
@@ -204,6 +203,15 @@ V:1 perc stafflines=5 stem=up
 const styleRenderedNotes = (scoreDiv, voices) => {
   const svg = scoreDiv.querySelector('svg');
   if (!svg) return;
+
+  // Make SVG responsive by adding viewBox and removing fixed dimensions
+  const originalWidth = svg.getAttribute('width');
+  const originalHeight = svg.getAttribute('height');
+  if (originalWidth && originalHeight && !svg.getAttribute('viewBox')) {
+    svg.setAttribute('viewBox', `0 0 ${parseFloat(originalWidth)} ${parseFloat(originalHeight)}`);
+  }
+  svg.removeAttribute('width');
+  svg.removeAttribute('height');
 
   const notes = svg.querySelectorAll('.abcjs-note');
 
@@ -256,7 +264,7 @@ export const renderGroovePreview = (groove, uniqueId) => {
 
   return `
     <div class="groove-preview-container">
-      <div id="${uniqueId}" class="groove-preview" style="min-height: 100px; border: 1px solid #eee;">
+      <div id="${uniqueId}" class="groove-preview">
         <!-- ABC notation will render here -->
       </div>
     </div>

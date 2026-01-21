@@ -6,7 +6,8 @@
     "build": "observable build",
     "dev": "observable preview",
     "deploy": "observable deploy",
-    "observable": "observable"
+    "observable": "observable",
+    "invalidate-cache": "powershell -ExecutionPolicy Bypass -File ./invalidate-cache.ps1"
   },
   "dependencies": {
     "@observablehq/framework": "^1.13.0",

@@ -447,6 +447,8 @@ export const debouncedSetListSearch = debounce((searchTerm) => {
 
 // ===== GIG MODE =====
 let gigModeCurrentIndex = 0;
+let tempoBlinkTimeout = null;
+let tempoBlinkEnabled = false;
 
 /**
  * Enter Gig Mode - full-screen mobile-friendly set list view
@@ -496,18 +498,38 @@ const renderGigModeList = () => {
 
     const isCurrent = index === gigModeCurrentIndex;
     const isPlayed = index < gigModeCurrentIndex;
+    const previewId = `gig-preview-${song.id}-${index}`;
 
     return `
       <div class="gig-song-item ${isCurrent ? 'current' : ''} ${isPlayed ? 'played' : ''}"
-           data-index="${index}">
+           data-index="${index}" data-song-id="${songId}">
         <span class="gig-song-number">${index + 1}</span>
         <div class="gig-song-info">
           <div class="gig-song-title">${song.title}</div>
           ${song.notes ? `<div class="gig-song-notes">${song.notes}</div>` : ''}
+          ${isCurrent && song.groove ? `
+            <div class="gig-groove-preview">
+              <div class="groove-preview-container">
+                <div id="${previewId}" class="groove-preview">
+                  <!-- Notation renders here -->
+                </div>
+              </div>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
   }).join('');
+
+  // Render the notation for the current song
+  const currentSongId = state.currentSetList[gigModeCurrentIndex];
+  const currentSong = state.songLibrary.get(currentSongId);
+  if (currentSong && currentSong.groove) {
+    const previewId = `gig-preview-${currentSong.id}-${gigModeCurrentIndex}`;
+    setTimeout(() => {
+      renderScore(currentSong.groove, previewId, currentSong.settings);
+    }, 50);
+  }
 
   // Add click handlers to songs
   songList.querySelectorAll('.gig-song-item').forEach(item => {
@@ -516,6 +538,10 @@ const renderGigModeList = () => {
       renderGigModeList();
       updateGigModeProgress();
       scrollToCurrentGigSong();
+      // Start tempo blink if enabled
+      if (tempoBlinkEnabled) {
+        startTempoBlink();
+      }
     });
   });
 
@@ -559,6 +585,10 @@ export const gigModeNext = () => {
     gigModeCurrentIndex++;
     renderGigModeList();
     updateGigModeProgress();
+    // Start tempo blink if enabled
+    if (tempoBlinkEnabled) {
+      startTempoBlink();
+    }
   }
 };
 
@@ -610,6 +640,75 @@ const setupGigModeSwipe = (overlay) => {
   }, { passive: true });
 };
 
+/**
+ * Set up tempo blink controls
+ */
+export const setupTempoBlinkControls = () => {
+  const toggle = document.getElementById('tempo-blink-toggle');
+  const duration = document.getElementById('tempo-blink-duration');
+
+  if (toggle) {
+    toggle.addEventListener('change', (e) => {
+      tempoBlinkEnabled = e.target.checked;
+      if (duration) {
+        duration.disabled = !tempoBlinkEnabled;
+      }
+    });
+  }
+};
+
+/**
+ * Start tempo blink animation for the current song
+ */
+export const startTempoBlink = () => {
+  const currentSongItem = document.querySelector('.gig-song-item.current');
+  const durationSelect = document.getElementById('tempo-blink-duration');
+
+  if (!currentSongItem) return;
+
+  // Get the current song's BPM
+  const currentSongId = state.currentSetList[gigModeCurrentIndex];
+  const currentSong = state.songLibrary.get(currentSongId);
+
+  if (!currentSong || !currentSong.settings) {
+    return; // Silently skip if no tempo set
+  }
+
+  const bpm = parseInt(currentSong.settings.bpm) || 120;
+  const blinkInterval = 60000 / bpm; // Convert BPM to milliseconds per beat
+  const duration = durationSelect ? parseInt(durationSelect.value) * 1000 : 4000;
+
+  // Stop any existing blink
+  stopTempoBlink();
+
+  // Set the CSS variable for animation timing on the song item
+  currentSongItem.style.setProperty('--blink-interval', `${blinkInterval}ms`);
+
+  // Start the animation
+  currentSongItem.classList.add('tempo-blink');
+
+  // Stop after the specified duration
+  tempoBlinkTimeout = setTimeout(() => {
+    stopTempoBlink();
+  }, duration);
+};
+
+/**
+ * Stop tempo blink animation
+ */
+export const stopTempoBlink = () => {
+  if (tempoBlinkTimeout) {
+    clearTimeout(tempoBlinkTimeout);
+    tempoBlinkTimeout = null;
+  }
+
+  // Remove tempo-blink class from any song item that has it
+  const blinkingItem = document.querySelector('.gig-song-item.tempo-blink');
+  if (blinkingItem) {
+    blinkingItem.classList.remove('tempo-blink');
+  }
+};
+
 // Make functions globally available
 window.handleSetlistAction = handleSetlistAction;
 window.removeFromSet = removeFromSet;
@@ -619,3 +718,6 @@ window.enterGigMode = enterGigMode;
 window.exitGigMode = exitGigMode;
 window.gigModeNext = gigModeNext;
 window.gigModePrev = gigModePrev;
+window.startTempoBlink = startTempoBlink;
+window.stopTempoBlink = stopTempoBlink;
+window.setupTempoBlinkControls = setupTempoBlinkControls;

@@ -121,13 +121,11 @@ toc: false
         <div class="library-controls">
           <div class="search-container">
             <input
-              type="text"
+              type="search"
               id="library-search"
               placeholder="Search songs..."
               class="search-input"
             >
-            <button type="button" class="clear-search" aria-label="Clear search">&times;</button>
-            <span class="library-search-count search-count"></span>
           </div>
           <div class="button-group">
             <button data-action="save-library" title="Save Library">
@@ -170,9 +168,7 @@ toc: false
       </h3>
       <div class="setlist-controls">
         <div class="search-container">
-          <input type="text" id="setlist-search" placeholder="Search set list...">
-          <button type="button" class="clear-search" aria-label="Clear search">&times;</button>
-          <span class="setlist-search-count search-count"></span>
+          <input type="search" id="setlist-search" placeholder="Search set list...">
         </div>
         <div class="button-group">
           <button data-action="save-setlist" title="Save Set List">
@@ -274,6 +270,19 @@ toc: false
         <line x1="6" y1="6" x2="18" y2="18"/>
       </svg>
     </button>
+    <div class="gig-tempo-controls">
+      <label class="gig-tempo-toggle">
+        <input type="checkbox" id="tempo-blink-toggle">
+        <span class="toggle-label">Tempo</span>
+      </label>
+      <select id="tempo-blink-duration" class="gig-tempo-duration" disabled>
+        <option value="2">2s</option>
+        <option value="4" selected>4s</option>
+        <option value="6">6s</option>
+        <option value="8">8s</option>
+        <option value="10">10s</option>
+      </select>
+    </div>
     <span class="gig-progress"></span>
   </div>
   <div class="gig-mode-content">
@@ -465,6 +474,8 @@ select {
   font-size: 0.95rem;
   background: rgba(255, 255, 255, 0.8);
   transition: all 0.2s ease;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 input[type="text"]:hover,
@@ -663,11 +674,31 @@ button:active {
   background: #f8fafc;
   border-radius: var(--radius);
   overflow-x: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 #groove-preview svg {
   display: block;
-  margin: 0 auto;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+/* Groove preview containers in library/setlist tables */
+.groove-preview-container {
+  width: 100%;
+}
+
+.groove-preview {
+  width: 100%;
+  min-height: 80px;
+}
+
+.groove-preview svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 @media print {
@@ -1092,15 +1123,13 @@ mark {
 /* Update library styles */
 .library-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
 .library-title {
   margin: 0;
-  flex-shrink: 0;
-  margin-right: 1rem;
 }
 
 .library-controls {
@@ -1485,46 +1514,25 @@ mark {
   background: var(--primary);
 }
 
-/* Clear Search Button */
+/* Search Container */
 .search-container {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  display: block;
+  width: 100%;
 }
 
-.clear-search {
-  position: absolute;
-  right: 70px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1.2rem;
-  padding: 0.25rem 0.5rem;
+.search-container input[type="search"] {
+  width: 100%;
+}
+
+/* Style the native search clear button */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1rem;
+  width: 1rem;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E") center/contain no-repeat;
   cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.15s ease;
-}
-
-.clear-search:hover {
-  opacity: 1;
-  color: var(--danger);
-  background: none;
-}
-
-.clear-search:active {
-  transform: translateY(-50%) scale(0.9);
-  background: none;
-}
-
-/* Search Count */
-.search-count {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-  display: none;
 }
 
 /* Button Icons */
@@ -2197,6 +2205,48 @@ textarea:focus-visible {
 
 .gig-song-item.current .gig-song-notes {
   color: rgba(255, 255, 255, 0.8);
+  white-space: normal;
+  overflow: visible;
+  margin-bottom: 0.75rem;
+}
+
+/* Gig mode groove preview - reuse .groove-preview styles */
+.gig-groove-preview {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: var(--radius);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 80px;
+  color: #000000; /* Override inherited white color from gig-mode-overlay */
+}
+
+.gig-groove-preview svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+/* Ensure all SVG strokes are black, not inherited white */
+.gig-groove-preview svg * {
+  stroke: currentColor;
+}
+
+.gig-groove-preview svg text {
+  fill: #000000;
+}
+
+/* Allow notes to wrap on current song */
+.gig-song-item.current .gig-song-info {
+  overflow: visible;
+}
+
+.gig-song-item.current .gig-song-title {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .gig-mode-nav {
@@ -2238,6 +2288,65 @@ textarea:focus-visible {
   cursor: not-allowed;
 }
 
+/* Gig Mode Tempo Controls */
+.gig-tempo-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.gig-tempo-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.gig-tempo-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.gig-tempo-duration {
+  padding: 0.375rem 0.5rem;
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: var(--radius);
+  color: white;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.gig-tempo-duration option {
+  background: #1e293b;
+  color: white;
+}
+
+.gig-tempo-duration:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Tempo blink animation on current song - sharp on/off for clear tempo */
+.gig-song-item.current.tempo-blink {
+  animation: song-tempo-pulse var(--blink-interval, 500ms) steps(1) infinite;
+}
+
+@keyframes song-tempo-pulse {
+  0%, 50% {
+    background-color: #ffffff;
+    border-color: #ffffff;
+  }
+  50.1%, 100% {
+    background-color: var(--primary);
+    border-color: var(--primary);
+  }
+}
+
 /* Gig Mode Button styling */
 .btn-gig {
   background: #0f172a !important;
@@ -2267,6 +2376,17 @@ textarea:focus-visible {
 
 /* Tablet breakpoint (768px) */
 @media (max-width: 768px) {
+  /* Ensure all elements respect box-sizing */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  /* Prevent horizontal overflow on body/html */
+  body, html {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
   /* Hero - more compact */
   .hero {
     padding: 2rem 1rem;
@@ -2292,11 +2412,13 @@ textarea:focus-visible {
     padding: 0 0.75rem 2rem;
   }
 
-  /* Cards - reduce padding */
+  /* Cards - reduce padding and prevent overflow */
   .card {
     padding: 1rem;
     margin-bottom: 1rem;
     border-radius: var(--radius);
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .card h3 {
@@ -2309,14 +2431,21 @@ textarea:focus-visible {
   }
 
   /* Form - stack everything vertically */
+  .song-form {
+    width: 100%;
+    overflow: hidden;
+  }
+
   .form-row {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    width: 100%;
   }
 
   .form-group {
     width: 100%;
+    max-width: 100%;
   }
 
   .form-group label {
@@ -2328,8 +2457,29 @@ textarea:focus-visible {
   .form-group select,
   .form-group textarea {
     width: 100%;
+    max-width: 100%;
     font-size: 16px; /* Prevents iOS zoom */
     padding: 0.6rem 0.75rem;
+    box-sizing: border-box;
+  }
+
+  /* Notes and external link - full width */
+  .form-group textarea,
+  .form-group input[type="url"],
+  .form-group input[name="titleInput"] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Constrain numeric inputs to appropriate widths */
+  .form-group input[name="bpmInput"] {
+    width: 70px !important;
+    max-width: 70px !important;
+  }
+
+  .form-group input[name="measureCount"] {
+    width: 50px !important;
+    max-width: 50px !important;
   }
 
   /* Time signature - inline on mobile */
@@ -2359,13 +2509,16 @@ textarea:focus-visible {
   .grid-scroll-container {
     margin: 0.75rem 0;
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 0.5rem;
+    max-width: 100%;
   }
 
   .groove-grid {
     padding: 0.75rem;
     min-width: max-content;
+    width: fit-content;
   }
 
   .grid-row {
@@ -2398,25 +2551,51 @@ textarea:focus-visible {
     min-height: 32px;
   }
 
-  /* Groove preview - scrollable and smaller on mobile */
+  /* Groove preview - fit to width on mobile, no scroll */
   #groove-preview {
     margin: 0.75rem 0;
-    padding: 0.75rem;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 0.5rem;
+    overflow: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
-  /* Scale down the notation on mobile */
+  /* Staff notation - scale to fit container width on mobile */
   #groove-preview svg {
-    max-width: none;
-    transform: scale(0.85);
-    transform-origin: left top;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+  }
+
+  .groove-notation {
+    max-width: 100%;
+    overflow: hidden;
+    width: 100%;
   }
 
   .groove-notation svg {
-    max-width: none;
-    transform: scale(0.75);
-    transform-origin: left top;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+  }
+
+  /* Groove preview in library/setlist tables */
+  .groove-preview-container {
+    width: 100%;
+  }
+
+  .groove-preview {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .groove-preview svg {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
   }
 
   /* Library header - stack on mobile */
@@ -2481,7 +2660,8 @@ textarea:focus-visible {
 
   /* Search container fixes */
   .search-container {
-    max-width: none;
+    display: block;
+    width: 100%;
   }
 
   .search-input,
@@ -2489,101 +2669,116 @@ textarea:focus-visible {
   #setlist-search {
     width: 100%;
     font-size: 16px;
-    padding: 0.6rem 2.5rem 0.6rem 0.75rem;
+    padding: 0.6rem 0.75rem;
   }
 
-  .clear-search {
-    right: 50px;
+  /* Library action buttons - fit all 4 in one row, evenly spaced */
+  .library-table .action-row td {
+    width: 100%;
   }
 
-  .search-count {
-    min-width: 40px;
-    font-size: 0.7rem;
+  .library-table .action-buttons {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.5rem;
+    width: 100%;
   }
 
-  /* Tables - card-style layout */
-  .library-table,
-  .setlist-table {
+  .library-table .action-buttons button {
+    padding: 0.6rem 0.25rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    min-height: 44px;
+    min-width: 0 !important;
+    width: 100%;
+  }
+
+  /* ===== LIBRARY TABLE - CARD LAYOUT ===== */
+  .library-table {
     display: block;
+    width: 100%;
     border-radius: var(--radius);
   }
 
-  .library-table thead,
-  .setlist-table thead {
+  .library-table thead {
     display: none;
   }
 
-  .library-table tbody,
-  .setlist-table tbody {
+  .library-table tbody {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0;
+    width: 100%;
   }
 
-  .library-table tr,
-  .setlist-table tr {
+  .library-table tr {
     display: block;
+    width: 100%;
     background: white;
-    border-radius: var(--radius);
     border: 1px solid var(--border);
+    border-radius: 0;
     overflow: hidden;
   }
 
-  .library-table tr.song-row,
-  .setlist-table tr.song-row {
+  .library-table tr.song-row {
     border-bottom: none;
     border-radius: var(--radius) var(--radius) 0 0;
+    margin-top: 0.75rem;
   }
 
-  .library-table tr.action-row,
-  .setlist-table tr.action-row {
+  .library-table tr.song-row:first-child {
+    margin-top: 0;
+  }
+
+  .library-table tr.action-row {
     border-top: none;
     border-bottom: none;
-    border-radius: 0;
   }
 
-  .library-table tr.groove-row,
-  .setlist-table tr.groove-row {
+  .library-table tr.groove-row {
     border-top: none;
     border-radius: 0 0 var(--radius) var(--radius);
-    margin-bottom: 0.75rem;
   }
 
-  .library-table td,
-  .setlist-table td {
+  .library-table tr.groove-row td {
     display: block;
+    width: 100% !important;
+    padding: 0.5rem !important;
+    box-sizing: border-box;
+  }
+
+  .library-table tr.groove-row td[colspan] {
+    display: block;
+    width: 100% !important;
+  }
+
+  .library-table .groove-preview-container,
+  .library-table .groove-preview {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .library-table .groove-preview svg {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  .library-table td {
+    display: block;
+    width: 100%;
     padding: 0.5rem 0.75rem;
     border: none;
+    box-sizing: border-box;
   }
 
-  /* Order number - prominent display */
-  .setlist-table td:first-child {
-    display: inline-block;
-    padding: 0.5rem 0.75rem;
-    font-weight: bold;
-    background: var(--primary);
-    color: white;
-    border-radius: var(--radius) 0 var(--radius) 0;
-    position: absolute;
-    margin-top: -0.5rem;
-    margin-left: -0.75rem;
-  }
-
-  .setlist-table .song-row {
-    position: relative;
-    padding-top: 0.25rem;
-  }
-
-  /* Title cell */
-  .setlist-table td:nth-child(2),
+  /* Library title cell */
   .library-table td:nth-child(1) {
     font-weight: 600;
     font-size: 1rem;
-    padding-left: 3rem;
   }
 
-  /* Notes cell - show on mobile but styled differently */
-  .setlist-table td:nth-child(3),
+  /* Library notes cell */
   .library-table td:nth-child(2) {
     display: block !important;
     font-size: 0.85rem;
@@ -2591,20 +2786,138 @@ textarea:focus-visible {
     padding-top: 0;
   }
 
-  /* Empty notes - hide the cell */
-  .setlist-table td:nth-child(3):empty,
   .library-table td:nth-child(2):empty {
     display: none !important;
     padding: 0;
   }
 
-  /* Actions cell - hidden (moved to action-row) */
-  .setlist-table td:nth-child(4),
+  /* Library actions cell - hidden (moved to action-row) */
   .library-table td:nth-child(3) {
     display: none;
   }
 
+  /* ===== SETLIST TABLE - STANDARD TABLE LAYOUT ===== */
+  /* Keep setlist as a regular table on mobile for cleaner display */
+  .setlist-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .setlist-table thead {
+    display: none;
+  }
+
+  .setlist-table tbody {
+    display: table-row-group;
+    width: 100%;
+  }
+
+  .setlist-table tr {
+    display: table-row;
+    width: 100%;
+    background: white;
+  }
+
+  .setlist-table tr.song-row {
+    border-top: 1px solid var(--border);
+  }
+
+  .setlist-table tr.song-row:first-child {
+    border-top: none;
+  }
+
+  .setlist-table tr.action-row,
+  .setlist-table tr.groove-row {
+    border-top: none;
+  }
+
+  .setlist-table td {
+    display: table-cell;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    box-sizing: border-box;
+    vertical-align: middle;
+  }
+
+  /* Order number cell - inline badge style */
+  .setlist-table .song-row td:first-child {
+    width: 40px;
+    text-align: center;
+    vertical-align: top;
+    padding-top: 0.75rem;
+  }
+
+  .setlist-table .song-row .position-selector {
+    display: flex;
+    justify-content: center;
+  }
+
+  .setlist-table .song-row .position-number {
+    background: var(--primary);
+    color: white;
+    border-radius: var(--radius);
+    padding: 0.25rem 0.5rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+    min-width: 28px;
+    text-align: center;
+  }
+
+  /* Title cell */
+  .setlist-table .song-row td:nth-child(2) {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  /* Notes cell */
+  .setlist-table .song-row td:nth-child(3) {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .setlist-table .song-row td:nth-child(3):empty {
+    display: none;
+  }
+
   /* Action buttons row */
+  .setlist-table .action-row td {
+    padding: 0.5rem 0.75rem;
+    padding-left: 50px;
+  }
+
+  .setlist-table .action-row td[colspan] {
+    display: table-cell;
+  }
+
+  .setlist-table .action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+  }
+
+  .setlist-table .action-buttons button {
+    flex: 1;
+    min-width: calc(25% - 0.5rem);
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    min-height: 40px;
+  }
+
+  /* Groove row */
+  .setlist-table .groove-row td {
+    padding: 0.5rem 0.75rem !important;
+    padding-left: 50px !important;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .setlist-table .groove-row td[colspan] {
+    display: table-cell;
+  }
+
+  /* General action buttons styling */
   .action-row td {
     padding: 0.5rem 0.75rem;
   }
@@ -2624,22 +2937,31 @@ textarea:focus-visible {
     min-height: 40px;
   }
 
-  /* Groove row */
+  /* Groove row - ensure full width for notation */
   .groove-row td {
     padding: 0.5rem !important;
-    overflow-x: auto;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .groove-notation {
     padding: 0.5rem;
-    overflow-x: auto;
+    overflow: hidden;
+    width: 100%;
   }
 
-  /* Library/setlist content containers */
-  .library-content,
+  /* Library/setlist content containers - scrollable on mobile */
+  .library-content {
+    max-height: 400px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .setlist-table-container {
-    max-height: none;
-    overflow: visible;
+    max-height: 500px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Toast - full width on mobile */
@@ -2766,13 +3088,15 @@ textarea:focus-visible {
     font-size: 0.65rem;
   }
 
-  /* Even smaller notation on small phones */
+  /* Notation on small phones - full width */
   #groove-preview svg {
-    transform: scale(0.7);
+    width: 100% !important;
+    height: auto !important;
   }
 
   .groove-notation svg {
-    transform: scale(0.6);
+    width: 100% !important;
+    height: auto !important;
   }
 
   /* Setlist buttons - 2 columns */
@@ -2780,15 +3104,41 @@ textarea:focus-visible {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  /* Action buttons - stack vertically */
-  .action-buttons button {
-    min-width: 100%;
+  /* Setlist action buttons on small phones */
+  .setlist-table .action-buttons {
+    gap: 0.35rem;
   }
 
-  /* Table cards - tighter */
-  .setlist-table td:nth-child(2),
+  .setlist-table .action-buttons button {
+    min-width: calc(25% - 0.35rem);
+    padding: 0.4rem;
+    font-size: 0.7rem;
+  }
+
+  .setlist-table .action-row td,
+  .setlist-table .groove-row td {
+    padding-left: 45px !important;
+  }
+
+  /* Library action buttons - keep in one row on small phones, evenly spaced */
+  .library-table .action-buttons {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.35rem;
+    width: 100%;
+  }
+
+  .library-table .action-buttons button {
+    padding: 0.5rem 0.2rem;
+    font-size: 0.7rem;
+    min-height: 40px;
+    min-width: 0 !important;
+    width: 100%;
+  }
+
+  /* Title cells - smaller font on small phones */
+  .setlist-table .song-row td:nth-child(2),
   .library-table td:nth-child(1) {
-    padding-left: 2.5rem;
     font-size: 0.95rem;
   }
 
