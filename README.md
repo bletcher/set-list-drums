@@ -8,13 +8,15 @@ A web application for creating, managing, and organizing drum patterns with musi
 - Interactive grid interface for creating drum patterns
 - Support for three instruments: Hi-hat (HH), Snare (SN), and Kick (KK)
 - Visual feedback with active/inactive cells
-- Built-in example patterns (Basic, Rock, Funk)
+- Fill/Empty buttons for quick row population
+- Shift+click to fill range between clicks
 
 ### Musical Settings
 - Adjustable tempo (40-300 BPM)
 - Configurable time signatures
 - Variable measure count (1-4)
 - Selectable note divisions (quarter, eighth, sixteenth notes)
+- Triplet support (eighth and sixteenth triplets)
 - Standard musical staff notation display
 
 ### Library Management
@@ -34,9 +36,11 @@ A web application for creating, managing, and organizing drum patterns with musi
 ### Gig Mode
 - Full-screen mobile-optimized view for live performances
 - Large touch targets for easy navigation
-- Current song highlighting with progress indicator
+- Current song highlighting with full-width notation display
 - Prev/Next navigation buttons
 - Swipe gestures for hands-free song navigation
+- Tempo blink feature - visual tempo indicator at song's BPM
+- Configurable blink count (4, 8, 16, or 32 clicks)
 - Dark theme optimized for stage lighting
 
 ## Installation

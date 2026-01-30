@@ -55,11 +55,16 @@ export const updateGridFromGroove = (grooveString) => {
   });
 };
 
+// Track last clicked cell index per instrument for shift-click fill
+const lastClickedCell = { H: null, S: null, K: null };
+
 /**
  * Set up click handlers for the beat grid using event delegation
  */
 export const setupGridClickHandlers = () => {
   document.querySelectorAll('.beat-grid').forEach(grid => {
+    const instrument = grid.dataset.instrument;
+
     // Remove any existing click handlers by cloning
     const newGrid = grid.cloneNode(true);
     grid.parentNode.replaceChild(newGrid, grid);
@@ -69,14 +74,104 @@ export const setupGridClickHandlers = () => {
       const cell = e.target.closest('.grid-cell');
       if (!cell) return;
 
-      cell.classList.toggle('active');
-      cell.textContent = cell.classList.contains('active') ? 'x' : '-';
+      const cellIndex = parseInt(cell.dataset.index);
+
+      // Shift-click: fill range from last clicked cell to current
+      if (e.shiftKey && lastClickedCell[instrument] !== null) {
+        const start = Math.min(lastClickedCell[instrument], cellIndex);
+        const end = Math.max(lastClickedCell[instrument], cellIndex);
+        const cells = newGrid.querySelectorAll('.grid-cell');
+
+        for (let i = start; i <= end; i++) {
+          cells[i].classList.add('active');
+          cells[i].textContent = 'x';
+        }
+      } else {
+        // Normal click: toggle single cell
+        cell.classList.toggle('active');
+        cell.textContent = cell.classList.contains('active') ? 'x' : '-';
+      }
+
+      // Track last clicked cell for this instrument
+      lastClickedCell[instrument] = cellIndex;
 
       // Use debounced render for better performance
       const grooveString = getCurrentGrooveString();
       debouncedRenderScore(grooveString);
     });
   });
+
+  // Set up fill button handlers
+  setupFillButtons();
+};
+
+/**
+ * Set up fill button click handlers
+ */
+const setupFillButtons = () => {
+  document.querySelectorAll('.fill-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const instrument = btn.dataset.instrument;
+      const isFilled = btn.dataset.filled === 'true';
+
+      if (isFilled) {
+        emptyRow(instrument);
+        btn.textContent = 'Fill';
+        btn.dataset.filled = 'false';
+        btn.classList.remove('filled');
+      } else {
+        fillRow(instrument);
+        btn.textContent = 'Empty';
+        btn.dataset.filled = 'true';
+        btn.classList.add('filled');
+      }
+    });
+  });
+};
+
+/**
+ * Fill all cells in a row
+ * @param {string} instrument - The instrument row to fill: 'H', 'S', or 'K'
+ */
+export const fillRow = (instrument) => {
+  const grid = document.querySelector(`.beat-grid[data-instrument="${instrument}"]`);
+  if (!grid) return;
+
+  grid.querySelectorAll('.grid-cell').forEach(cell => {
+    cell.classList.add('active');
+    cell.textContent = 'x';
+  });
+
+  const grooveString = getCurrentGrooveString();
+  debouncedRenderScore(grooveString);
+};
+
+/**
+ * Empty all cells in a row
+ * @param {string} instrument - The instrument row to empty: 'H', 'S', or 'K'
+ */
+export const emptyRow = (instrument) => {
+  const grid = document.querySelector(`.beat-grid[data-instrument="${instrument}"]`);
+  if (!grid) return;
+
+  grid.querySelectorAll('.grid-cell').forEach(cell => {
+    cell.classList.remove('active');
+    cell.textContent = '-';
+  });
+
+  const grooveString = getCurrentGrooveString();
+  debouncedRenderScore(grooveString);
+};
+
+/**
+ * Parse note division value (handles triplets like "8t", "16t")
+ * @param {string} value - The note division value
+ * @returns {{baseValue: number, isTriplet: boolean}}
+ */
+const parseNoteDivision = (value) => {
+  const isTriplet = value.toString().includes('t');
+  const baseValue = parseInt(value.replace('t', ''));
+  return { baseValue, isTriplet };
 };
 
 /**
@@ -85,11 +180,16 @@ export const setupGridClickHandlers = () => {
 export const updateTimeSignature = () => {
   const beatsPerBar = parseInt(document.querySelector('[name="beatsPerBar"]').value);
   const beatUnit = parseInt(document.querySelector('[name="beatUnit"]').value);
-  const noteDivision = parseInt(document.querySelector('[name="noteDivision"]').value);
+  const noteDivisionValue = document.querySelector('[name="noteDivision"]').value;
+  const { baseValue: noteDivision, isTriplet } = parseNoteDivision(noteDivisionValue);
   const measureCount = parseInt(document.querySelector('[name="measureCount"]').value);
 
   // Calculate total grid cells needed
-  const subdivisions = noteDivision / beatUnit;
+  // For triplets, multiply by 3/2 (e.g., 8th triplets = 3 notes per beat instead of 2)
+  let subdivisions = noteDivision / beatUnit;
+  if (isTriplet) {
+    subdivisions = (subdivisions * 3) / 2;
+  }
   const totalCells = beatsPerBar * subdivisions * measureCount;
 
   // Save current pattern before reinitializing grid
@@ -110,17 +210,24 @@ export const updateTimeSignature = () => {
     grid.style.setProperty('--total-cells', totalCells);
 
     // Create cells
+    const cellsPerMeasure = beatsPerBar * subdivisions;
     for (let i = 0; i < totalCells; i++) {
       const cell = document.createElement('div');
       cell.className = 'grid-cell';
       cell.dataset.index = i;
       cell.textContent = '-';
 
-      // Add beat numbers (reset for each measure)
+      // Add beat boundary class (first cell of each beat group)
       if (i % subdivisions === 0) {
-        const measureIndex = Math.floor(i / (beatsPerBar * subdivisions));
+        cell.classList.add('beat-start');
+        const measureIndex = Math.floor(i / cellsPerMeasure);
         const beatInMeasure = (Math.floor(i / subdivisions) % beatsPerBar) + 1;
         cell.dataset.beat = `${measureIndex + 1}.${beatInMeasure}`;
+
+        // Add measure boundary class (first beat of each measure)
+        if (beatInMeasure === 1) {
+          cell.classList.add('measure-start');
+        }
       }
 
       grid.appendChild(cell);
@@ -205,7 +312,8 @@ export const updateNoteDivision = (value) => {
  */
 export const getExampleGroove = (pattern) => {
   const beatUnit = parseInt(document.querySelector('[name="beatUnit"]').value);
-  const noteDivision = parseInt(document.querySelector('[name="noteDivision"]').value);
+  const noteDivisionValue = document.querySelector('[name="noteDivision"]').value;
+  const { baseValue: noteDivision, isTriplet } = parseNoteDivision(noteDivisionValue);
   const measureCount = parseInt(document.querySelector('[name="measureCount"]').value) || 1;
 
   // Define base patterns for 16th notes
@@ -227,6 +335,25 @@ export const getExampleGroove = (pattern) => {
     }
   };
 
+  // Triplet base patterns (3 notes per beat group)
+  const tripletPatterns = {
+    basic: {
+      H: 'x-xx-xx-xx-x',  // 12 notes for 4 beats (3 per beat)
+      S: '---x-----x--',
+      K: 'x-----x-----'
+    },
+    rock: {
+      H: 'x-xx-xx-xx-x',
+      S: '---x-----x--',
+      K: 'x--x--x--x--'
+    },
+    funk: {
+      H: 'xxxxxxxxxxxx',
+      S: '-x-x-----x--',
+      K: 'x-xx--x--x-x'
+    }
+  };
+
   // Convert pattern based on note division
   const convertPattern = (pattern16) => {
     if (noteDivision === 16) return pattern16;
@@ -239,7 +366,21 @@ export const getExampleGroove = (pattern) => {
     return pattern16;
   };
 
-  const basePattern = patterns[pattern];
+  // Use triplet patterns if triplet division selected
+  let basePattern;
+  if (isTriplet) {
+    basePattern = tripletPatterns[pattern];
+    if (!basePattern) return '';
+    // Triplet patterns are already in correct format, just repeat for measures
+    const convertedH = basePattern.H.repeat(measureCount);
+    const convertedS = basePattern.S.repeat(measureCount);
+    const convertedK = basePattern.K.repeat(measureCount);
+    return `H|${convertedH}|
+S|${convertedS}|
+K|${convertedK}|`;
+  }
+
+  basePattern = patterns[pattern];
   if (!basePattern) return '';
 
   // Convert and repeat pattern for each measure
@@ -286,3 +427,5 @@ window.updateNoteDivision = updateNoteDivision;
 window.getExampleGroove = getExampleGroove;
 window.initializeGrids = initializeGrids;
 window.clearRow = clearRow;
+window.fillRow = fillRow;
+window.emptyRow = emptyRow;

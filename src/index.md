@@ -10,25 +10,8 @@ toc: false
 <div class="hero">
   <div class="hero-background"></div>
   <div class="hero-content">
-    <div class="logo-icon">
-      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="45" stroke="url(#grad1)" stroke-width="4"/>
-        <circle cx="50" cy="50" r="30" stroke="url(#grad1)" stroke-width="3"/>
-        <circle cx="50" cy="50" r="15" fill="url(#grad1)"/>
-        <line x1="50" y1="5" x2="50" y2="20" stroke="url(#grad1)" stroke-width="3" stroke-linecap="round"/>
-        <line x1="50" y1="80" x2="50" y2="95" stroke="url(#grad1)" stroke-width="3" stroke-linecap="round"/>
-        <line x1="5" y1="50" x2="20" y2="50" stroke="url(#grad1)" stroke-width="3" stroke-linecap="round"/>
-        <line x1="80" y1="50" x2="95" y2="50" stroke="url(#grad1)" stroke-width="3" stroke-linecap="round"/>
-        <defs>
-          <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#6366f1"/>
-            <stop offset="100%" style="stop-color:#ec4899"/>
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
     <h1>Set List <span class="highlight">Drums</span></h1>
-    <p class="hero-subtitle">Create grooves. Build set lists. Stay organized.</p>
+    <p class="hero-subtitle">Create grooves. Build set lists. Get tempos in gig mode.</p>
   </div>
 </div>
 <div class="main-content">
@@ -66,30 +49,31 @@ toc: false
           <select name="noteDivision" onchange="window.updateNoteDivision(this.value)">
             <option value="4">Quarter Notes</option>
             <option value="8">Eighth Notes</option>
+            <option value="8t">Eighth Triplets</option>
             <option value="16" selected>Sixteenth Notes</option>
+            <option value="16t">Sixteenth Triplets</option>
           </select>
         </div>
       </div>
       <div class="form-group">
-        <label>Main Groove:</label>
-        <div class="groove-examples">
-          <button type="button" data-pattern="basic">Basic</button>
-          <button type="button" data-pattern="rock">Rock</button>
-          <button type="button" data-pattern="funk">Funk</button>
-        </div>
+        <label>Groove Grid:</label>
+        <p class="grid-hint">Tip: Shift+click to fill from last click to current position</p>
         <div class="grid-scroll-container">
           <div class="groove-grid">
             <div class="grid-row">
               <span class="instrument">HH</span>
               <div class="beat-grid" data-instrument="H"></div>
+              <button type="button" class="fill-btn" data-instrument="H" title="Fill all">Fill</button>
             </div>
             <div class="grid-row">
               <span class="instrument">SN</span>
               <div class="beat-grid" data-instrument="S"></div>
+              <button type="button" class="fill-btn" data-instrument="S" title="Fill all">Fill</button>
             </div>
             <div class="grid-row">
               <span class="instrument">KK</span>
               <div class="beat-grid" data-instrument="K"></div>
+              <button type="button" class="fill-btn" data-instrument="K" title="Fill all">Fill</button>
             </div>
           </div>
         </div>
@@ -275,12 +259,11 @@ toc: false
         <input type="checkbox" id="tempo-blink-toggle">
         <span class="toggle-label">Tempo</span>
       </label>
-      <select id="tempo-blink-duration" class="gig-tempo-duration" disabled>
-        <option value="2">2s</option>
-        <option value="4" selected>4s</option>
-        <option value="6">6s</option>
-        <option value="8">8s</option>
-        <option value="10">10s</option>
+      <select id="tempo-blink-count" class="gig-tempo-duration" disabled>
+        <option value="4">4 clicks</option>
+        <option value="8" selected>8 clicks</option>
+        <option value="16">16 clicks</option>
+        <option value="32">32 clicks</option>
       </select>
     </div>
     <span class="gig-progress"></span>
@@ -512,38 +495,6 @@ select:focus {
   font-size: 1.5rem;
   font-weight: 500;
   color: var(--text-muted);
-}
-
-/* Groove Example Buttons - Pill Style */
-.groove-examples {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-}
-
-.groove-examples button {
-  font-size: 0.875rem;
-  font-weight: 600;
-  padding: 0.5rem 1.25rem;
-  background: #f1f5f9;
-  color: var(--text);
-  border: 2px solid transparent;
-  border-radius: 2rem;
-  box-shadow: none;
-  transition: all 0.2s ease;
-}
-
-.groove-examples button:hover {
-  background: white;
-  border-color: var(--primary-light);
-  color: var(--primary);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-.groove-examples button:active {
-  transform: translateY(0);
 }
 
 /* Modern Button Styling */
@@ -972,8 +923,14 @@ input[name="measureCount"] {
 }
 
 .time-signature input {
-  width: 3rem;
+  width: 4rem;
   text-align: center;
+  -moz-appearance: textfield;
+}
+
+.time-signature input::-webkit-inner-spin-button,
+.time-signature input::-webkit-outer-spin-button {
+  opacity: 1;
 }
 
 .time-signature .divider {
@@ -1688,6 +1645,41 @@ button {
   letter-spacing: 0.05em;
 }
 
+.fill-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--primary-light);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.fill-btn:hover {
+  background: var(--primary);
+}
+
+.fill-btn.filled {
+  background: var(--danger-light);
+}
+
+.fill-btn.filled:hover {
+  background: var(--danger);
+}
+
+.grid-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  font-style: italic;
+}
+
 .beat-grid {
   display: grid;
   grid-template-columns: repeat(16, 32px); /* Default, JS overrides dynamically */
@@ -1742,12 +1734,13 @@ button {
 
 /* Beat number styling - REMOVED (using CSS-based cell numbers instead) */
 
-/* Measure separation */
-.grid-cell:nth-child(4n+1) {
+/* Beat separation - applied dynamically based on note division */
+.grid-cell.beat-start {
   border-left: 2px solid #cbd5e1;
 }
 
-.grid-cell[data-beat$=".1"] {
+/* Measure separation - first beat of each measure */
+.grid-cell.measure-start {
   border-left: 3px solid var(--primary);
 }
 
@@ -2162,6 +2155,8 @@ textarea:focus-visible {
   background: var(--primary);
   border-color: var(--primary-light);
   transform: scale(1.02);
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .gig-song-item.played {
@@ -2179,6 +2174,16 @@ textarea:focus-visible {
 
 .gig-song-item.current .gig-song-number {
   color: white;
+  min-width: auto;
+  font-size: 1.25rem;
+}
+
+/* Current song header - number and title in one row */
+.gig-current-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
 }
 
 .gig-song-info {
@@ -2201,13 +2206,6 @@ textarea:focus-visible {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.gig-song-item.current .gig-song-notes {
-  color: rgba(255, 255, 255, 0.8);
-  white-space: normal;
-  overflow: visible;
-  margin-bottom: 0.75rem;
 }
 
 /* Gig mode groove preview - reuse .groove-preview styles */
@@ -2238,15 +2236,29 @@ textarea:focus-visible {
   fill: #000000;
 }
 
-/* Allow notes to wrap on current song */
-.gig-song-item.current .gig-song-info {
-  overflow: visible;
-}
-
+/* Current song title - larger and wrappable */
 .gig-song-item.current .gig-song-title {
+  font-size: 1.5rem;
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
+  flex: 1;
+}
+
+/* Current song notes - full width */
+.gig-song-item.current > .gig-song-notes {
+  color: rgba(255, 255, 255, 0.9);
+  white-space: normal;
+  overflow: visible;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+/* Current song groove preview - full width, larger */
+.gig-song-item.current .gig-groove-preview {
+  margin-top: 0.75rem;
+  padding: 1.25rem;
+  min-height: 120px;
 }
 
 .gig-mode-nav {
@@ -2494,17 +2506,6 @@ textarea:focus-visible {
     text-align: center;
   }
 
-  /* Groove examples - wrap nicely */
-  .groove-examples {
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .groove-examples button {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
-  }
-
   /* Beat grid - scrollable container */
   .grid-scroll-container {
     margin: 0.75rem 0;
@@ -2530,6 +2531,15 @@ textarea:focus-visible {
     width: 2rem;
     font-size: 0.7rem;
     flex-shrink: 0;
+  }
+
+  .fill-btn {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.6rem;
+  }
+
+  .grid-hint {
+    font-size: 0.65rem;
   }
 
   .beat-grid {

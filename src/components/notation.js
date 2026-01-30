@@ -2,6 +2,17 @@
 import { debounce } from './utils.js';
 
 /**
+ * Parse note division value (handles triplets like "8t", "16t")
+ * @param {string} value - The note division value
+ * @returns {{baseValue: number, isTriplet: boolean}}
+ */
+const parseNoteDivision = (value) => {
+  const isTriplet = value.toString().includes('t');
+  const baseValue = parseInt(value.toString().replace('t', ''));
+  return { baseValue, isTriplet };
+};
+
+/**
  * Generate ABC notation string from a groove pattern
  * @param {string} grooveString - The groove pattern
  * @param {Object} settings - Time signature and tempo settings
@@ -11,7 +22,8 @@ export const generateAbcNotation = (grooveString, settings = {}) => {
   const bpm = settings.bpm || document.querySelector('[name="bpmInput"]')?.value || '120';
   const beatsPerBar = settings.beatsPerBar || document.querySelector('[name="beatsPerBar"]')?.value || '4';
   const beatUnit = settings.beatUnit || document.querySelector('[name="beatUnit"]')?.value || '4';
-  const noteDivision = settings.noteDivision || document.querySelector('[name="noteDivision"]')?.value || '16';
+  const noteDivisionRaw = settings.noteDivision || document.querySelector('[name="noteDivision"]')?.value || '16';
+  const { baseValue: noteDivision, isTriplet } = parseNoteDivision(noteDivisionRaw);
   const measureCount = parseInt(settings.measureCount || document.querySelector('[name="measureCount"]')?.value) || 1;
 
   let abcString = `X:1
@@ -44,7 +56,8 @@ V:1 perc stafflines=5 stem=up
   const notes = [];
   const totalCells = voices.H.length;
   const cellsPerMeasure = totalCells / measureCount;
-  const subdivisions = parseInt(noteDivision) / parseInt(beatUnit);
+  const notesPerBeat = isTriplet ? 3 : (noteDivision / parseInt(beatUnit));
+  const subdivisions = notesPerBeat;
 
   for (let i = 0; i < totalCells; i++) {
     const chord = [
@@ -52,6 +65,12 @@ V:1 perc stafflines=5 stem=up
       voices.S[i] ? 'c^' : 'z',
       voices.K[i] ? 'D^' : 'z'
     ];
+
+    // For triplets, add (3 prefix at the start of each triplet group
+    if (isTriplet && i % 3 === 0) {
+      notes.push('(3');
+    }
+
     notes.push(`[${chord.join('')}]`);
 
     // Add space between beats for beaming
@@ -90,7 +109,8 @@ const renderScoreInternal = (grooveString, elementId = 'groove-preview', setting
   const bpm = settings?.bpm || document.querySelector('[name="bpmInput"]')?.value || '120';
   const beatsPerBar = settings?.beatsPerBar || document.querySelector('[name="beatsPerBar"]')?.value || '4';
   const beatUnit = settings?.beatUnit || document.querySelector('[name="beatUnit"]')?.value || '4';
-  const noteDivision = settings?.noteDivision || document.querySelector('[name="noteDivision"]')?.value || '16';
+  const noteDivisionRaw = settings?.noteDivision || document.querySelector('[name="noteDivision"]')?.value || '16';
+  const { baseValue: noteDivision, isTriplet } = parseNoteDivision(noteDivisionRaw);
   const measureCount = settings?.measureCount || parseInt(document.querySelector('[name="measureCount"]')?.value) || 1;
 
   // Convert our grid notation to ABC notation
@@ -136,7 +156,9 @@ V:1 perc stafflines=5 stem=up
 
   // Convert notes to ABC notation
   let combinedNotes = [];
-  const subdivisions = parseInt(noteDivision) / parseInt(beatUnit);
+  // For triplets, we have 3 notes per beat group; for regular, it's noteDivision/beatUnit
+  const notesPerBeat = isTriplet ? 3 : (noteDivision / parseInt(beatUnit));
+  const subdivisions = notesPerBeat;
 
   allNotes.forEach((chord, i) => {
     const notes = chord.map(note => {
@@ -146,6 +168,12 @@ V:1 perc stafflines=5 stem=up
         return note.instrument === 'S' ? 'c^' : 'D^';
       }
     });
+
+    // For triplets, add (3 prefix at the start of each triplet group
+    if (isTriplet && i % 3 === 0) {
+      combinedNotes.push('(3');
+    }
+
     combinedNotes.push(`[${notes.join('')}]`);
 
     if ((i + 1) % subdivisions === 0 && i < totalCells - 1) {

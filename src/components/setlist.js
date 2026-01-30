@@ -500,14 +500,17 @@ const renderGigModeList = () => {
     const isPlayed = index < gigModeCurrentIndex;
     const previewId = `gig-preview-${song.id}-${index}`;
 
-    return `
-      <div class="gig-song-item ${isCurrent ? 'current' : ''} ${isPlayed ? 'played' : ''}"
-           data-index="${index}" data-song-id="${songId}">
-        <span class="gig-song-number">${index + 1}</span>
-        <div class="gig-song-info">
-          <div class="gig-song-title">${song.title}</div>
+    // Current song has different layout - number inline with title, notation full width
+    if (isCurrent) {
+      return `
+        <div class="gig-song-item current"
+             data-index="${index}" data-song-id="${songId}">
+          <div class="gig-current-header">
+            <span class="gig-song-number">${index + 1}</span>
+            <div class="gig-song-title">${song.title}</div>
+          </div>
           ${song.notes ? `<div class="gig-song-notes">${song.notes}</div>` : ''}
-          ${isCurrent && song.groove ? `
+          ${song.groove ? `
             <div class="gig-groove-preview">
               <div class="groove-preview-container">
                 <div id="${previewId}" class="groove-preview">
@@ -516,6 +519,17 @@ const renderGigModeList = () => {
               </div>
             </div>
           ` : ''}
+        </div>
+      `;
+    }
+
+    return `
+      <div class="gig-song-item ${isPlayed ? 'played' : ''}"
+           data-index="${index}" data-song-id="${songId}">
+        <span class="gig-song-number">${index + 1}</span>
+        <div class="gig-song-info">
+          <div class="gig-song-title">${song.title}</div>
+          ${song.notes ? `<div class="gig-song-notes">${song.notes}</div>` : ''}
         </div>
       </div>
     `;
@@ -645,13 +659,13 @@ const setupGigModeSwipe = (overlay) => {
  */
 export const setupTempoBlinkControls = () => {
   const toggle = document.getElementById('tempo-blink-toggle');
-  const duration = document.getElementById('tempo-blink-duration');
+  const countSelect = document.getElementById('tempo-blink-count');
 
   if (toggle) {
     toggle.addEventListener('change', (e) => {
       tempoBlinkEnabled = e.target.checked;
-      if (duration) {
-        duration.disabled = !tempoBlinkEnabled;
+      if (countSelect) {
+        countSelect.disabled = !tempoBlinkEnabled;
       }
     });
   }
@@ -662,7 +676,7 @@ export const setupTempoBlinkControls = () => {
  */
 export const startTempoBlink = () => {
   const currentSongItem = document.querySelector('.gig-song-item.current');
-  const durationSelect = document.getElementById('tempo-blink-duration');
+  const countSelect = document.getElementById('tempo-blink-count');
 
   if (!currentSongItem) return;
 
@@ -676,7 +690,8 @@ export const startTempoBlink = () => {
 
   const bpm = parseInt(currentSong.settings.bpm) || 120;
   const blinkInterval = 60000 / bpm; // Convert BPM to milliseconds per beat
-  const duration = durationSelect ? parseInt(durationSelect.value) * 1000 : 4000;
+  const blinkCount = countSelect ? parseInt(countSelect.value) : 8;
+  const duration = blinkInterval * blinkCount; // Duration = interval * number of beats
 
   // Stop any existing blink
   stopTempoBlink();
@@ -687,7 +702,7 @@ export const startTempoBlink = () => {
   // Start the animation
   currentSongItem.classList.add('tempo-blink');
 
-  // Stop after the specified duration
+  // Stop after the specified number of beats
   tempoBlinkTimeout = setTimeout(() => {
     stopTempoBlink();
   }, duration);
