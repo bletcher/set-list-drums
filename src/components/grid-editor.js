@@ -53,6 +53,9 @@ export const updateGridFromGroove = (grooveString) => {
       }
     });
   });
+
+  // Update fill button states to match loaded groove
+  ['H', 'S', 'K'].forEach(updateFillButtonState);
 };
 
 // Track last clicked cell index per instrument for shift-click fill
@@ -98,11 +101,46 @@ export const setupGridClickHandlers = () => {
       // Use debounced render for better performance
       const grooveString = getCurrentGrooveString();
       debouncedRenderScore(grooveString);
+
+      // Update fill button state after manual cell changes
+      updateFillButtonState(instrument);
     });
   });
 
   // Set up fill button handlers
   setupFillButtons();
+};
+
+/**
+ * Check if all cells in a row are filled
+ * @param {string} instrument - The instrument to check: 'H', 'S', or 'K'
+ * @returns {boolean} - True if all cells are active
+ */
+const isRowFilled = (instrument) => {
+  const grid = document.querySelector(`.beat-grid[data-instrument="${instrument}"]`);
+  if (!grid) return false;
+  const cells = grid.querySelectorAll('.grid-cell');
+  if (cells.length === 0) return false;
+  return Array.from(cells).every(cell => cell.classList.contains('active'));
+};
+
+/**
+ * Update fill button state to match actual grid state
+ * @param {string} instrument - The instrument: 'H', 'S', or 'K'
+ */
+const updateFillButtonState = (instrument) => {
+  const btn = document.querySelector(`.fill-btn[data-instrument="${instrument}"]`);
+  if (!btn) return;
+
+  if (isRowFilled(instrument)) {
+    btn.textContent = 'Empty';
+    btn.dataset.filled = 'true';
+    btn.classList.add('filled');
+  } else {
+    btn.textContent = 'Fill';
+    btn.dataset.filled = 'false';
+    btn.classList.remove('filled');
+  }
 };
 
 /**
@@ -112,9 +150,9 @@ const setupFillButtons = () => {
   document.querySelectorAll('.fill-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const instrument = btn.dataset.instrument;
-      const isFilled = btn.dataset.filled === 'true';
 
-      if (isFilled) {
+      // Check actual grid state, not button state
+      if (isRowFilled(instrument)) {
         emptyRow(instrument);
         btn.textContent = 'Fill';
         btn.dataset.filled = 'false';
@@ -125,6 +163,16 @@ const setupFillButtons = () => {
         btn.dataset.filled = 'true';
         btn.classList.add('filled');
       }
+    });
+  });
+
+  // Set up fill-8ths button handlers
+  document.querySelectorAll('.fill-8ths-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const instrument = btn.dataset.instrument;
+      fillRow8ths(instrument);
+      // Update the Fill button state after filling 8ths
+      updateFillButtonState(instrument);
     });
   });
 };
@@ -157,6 +205,25 @@ export const emptyRow = (instrument) => {
   grid.querySelectorAll('.grid-cell').forEach(cell => {
     cell.classList.remove('active');
     cell.textContent = '-';
+  });
+
+  const grooveString = getCurrentGrooveString();
+  debouncedRenderScore(grooveString);
+};
+
+/**
+ * Fill every other cell in a row (8th notes when in 16th note mode)
+ * @param {string} instrument - The instrument row to fill: 'H', 'S', or 'K'
+ */
+export const fillRow8ths = (instrument) => {
+  const grid = document.querySelector(`.beat-grid[data-instrument="${instrument}"]`);
+  if (!grid) return;
+
+  grid.querySelectorAll('.grid-cell').forEach((cell, index) => {
+    if (index % 2 === 0) {
+      cell.classList.add('active');
+      cell.textContent = 'x';
+    }
   });
 
   const grooveString = getCurrentGrooveString();
@@ -236,6 +303,16 @@ export const updateTimeSignature = () => {
 
   // Reattach click handlers
   setupGridClickHandlers();
+
+  // Show/hide fill-8ths button based on note division (only show for 16th notes)
+  const fill8thsBtn = document.querySelector('.fill-8ths-btn');
+  if (fill8thsBtn) {
+    if (noteDivision === 16 && !isTriplet) {
+      fill8thsBtn.classList.add('visible');
+    } else {
+      fill8thsBtn.classList.remove('visible');
+    }
+  }
 
   // Restore pattern if there was one
   if (currentGroove) {
@@ -429,3 +506,4 @@ window.initializeGrids = initializeGrids;
 window.clearRow = clearRow;
 window.fillRow = fillRow;
 window.emptyRow = emptyRow;
+window.fillRow8ths = fillRow8ths;

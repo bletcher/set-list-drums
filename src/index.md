@@ -63,6 +63,7 @@ toc: false
             <div class="grid-row">
               <span class="instrument">HH</span>
               <div class="beat-grid" data-instrument="H"></div>
+              <button type="button" class="fill-8ths-btn" data-instrument="H" title="Fill 8th notes only">8ths</button>
               <button type="button" class="fill-btn" data-instrument="H" title="Fill all">Fill</button>
             </div>
             <div class="grid-row">
@@ -1670,6 +1671,30 @@ button {
 
 .fill-btn.filled:hover {
   background: var(--danger);
+}
+
+.fill-8ths-btn {
+  display: none;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--secondary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.fill-8ths-btn.visible {
+  display: inline-block;
+}
+
+.fill-8ths-btn:hover {
+  background: var(--primary);
 }
 
 .grid-hint {
