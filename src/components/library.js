@@ -34,11 +34,11 @@ export const renderLibrary = (searchTerm = '') => {
   // Update search count
   if (searchCount) {
     if (searchTerm) {
-      searchCount.textContent = `${songs.length} of ${allSongs.length}`;
-      searchCount.style.display = 'inline';
+      searchCount.textContent = `(${songs.length} of ${allSongs.length} songs)`;
     } else {
-      searchCount.style.display = 'none';
+      searchCount.textContent = `(${allSongs.length} songs)`;
     }
+    searchCount.style.display = 'inline';
   }
 
   // Expand library if we have search results

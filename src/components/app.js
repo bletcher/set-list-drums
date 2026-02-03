@@ -16,6 +16,7 @@ import {
 import {
   saveLibraryToFile,
   loadLibraryFromFile,
+  loadLibraryFromUrl,
   saveSetListToFile,
   loadSetListFromFile,
   loadSetListFromUrl
@@ -180,8 +181,16 @@ const setupEventHandlers = () => {
   // URL Modal handlers
   const urlModal = document.getElementById('url-modal');
   const urlInput = document.getElementById('url-input');
+  const urlModalTitle = urlModal?.querySelector('.modal-header h3');
+  let currentUrlLoadType = 'setlist'; // 'library' or 'setlist'
 
-  const openUrlModal = () => {
+  const openUrlModal = (type = 'setlist') => {
+    currentUrlLoadType = type;
+    if (urlModalTitle) {
+      urlModalTitle.textContent = type === 'library'
+        ? 'Load Library from URL'
+        : 'Load Set List from URL';
+    }
     urlModal?.classList.remove('hidden');
     urlInput?.focus();
   };
@@ -197,13 +206,22 @@ const setupEventHandlers = () => {
       return;
     }
     closeUrlModal();
-    loadSetListFromUrl(url, () => {
-      renderSetList();
-      renderFileNames();
-    });
+
+    if (currentUrlLoadType === 'library') {
+      loadLibraryFromUrl(url, () => {
+        renderLibrary();
+        renderFileNames();
+      });
+    } else {
+      loadSetListFromUrl(url, () => {
+        renderSetList();
+        renderFileNames();
+      });
+    }
   };
 
-  document.querySelector('[data-action="load-url"]')?.addEventListener('click', openUrlModal);
+  document.querySelector('[data-action="load-library-url"]')?.addEventListener('click', () => openUrlModal('library'));
+  document.querySelector('[data-action="load-url"]')?.addEventListener('click', () => openUrlModal('setlist'));
   document.querySelector('[data-action="close-url-modal"]')?.addEventListener('click', closeUrlModal);
   document.querySelectorAll('[data-action="close-url-modal"]').forEach(btn => {
     btn.addEventListener('click', closeUrlModal);

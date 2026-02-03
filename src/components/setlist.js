@@ -144,11 +144,11 @@ export const renderSetList = (searchTerm = '') => {
   // Update search count
   if (searchCount) {
     if (searchTerm) {
-      searchCount.textContent = `${matchCount} of ${state.currentSetList.length}`;
-      searchCount.style.display = 'inline';
+      searchCount.textContent = `(${matchCount} of ${state.currentSetList.length} songs)`;
     } else {
-      searchCount.style.display = 'none';
+      searchCount.textContent = `(${state.currentSetList.length} songs)`;
     }
+    searchCount.style.display = 'inline';
   }
 
   // Set up lazy rendering for groove previews

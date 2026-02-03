@@ -246,6 +246,77 @@ const convertDropboxUrl = (url) => {
 };
 
 /**
+ * Load the song library from a URL
+ * @param {string} url - The URL to fetch the library from
+ * @param {Function} onComplete - Callback after load completes
+ */
+export const loadLibraryFromUrl = async (url, onComplete) => {
+  if (isFileOperationInProgress) {
+    console.log('File operation already in progress');
+    return;
+  }
+
+  try {
+    isFileOperationInProgress = true;
+
+    // Convert cloud storage URLs to direct download URLs
+    let fetchUrl = url;
+    if (url.includes('drive.google.com')) {
+      fetchUrl = convertGoogleDriveUrl(url);
+    } else if (url.includes('dropbox.com')) {
+      fetchUrl = convertDropboxUrl(url);
+    }
+
+    // Add cache-busting timestamp to ensure fresh data
+    const separator = fetchUrl.includes('?') ? '&' : '?';
+    fetchUrl = `${fetchUrl}${separator}_t=${Date.now()}`;
+
+    const response = await fetch(fetchUrl, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+    }
+
+    const text = await response.text();
+    let savedLibrary;
+
+    try {
+      savedLibrary = JSON.parse(text);
+    } catch (parseError) {
+      throw new Error('Invalid JSON format. Please ensure the URL points to a valid library file.');
+    }
+
+    // Validate that it's an array (library format)
+    if (!Array.isArray(savedLibrary)) {
+      throw new Error('Invalid library format. Expected an array of songs.');
+    }
+
+    state.loadLibraryData(savedLibrary);
+
+    // Extract filename from URL for display
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split('/');
+    const filename = pathParts[pathParts.length - 1] || 'Remote Library';
+    state.setLibraryFileName(`${filename} (URL)`);
+
+    showToast(`Library loaded from URL`, 'success');
+
+    if (onComplete) onComplete();
+  } catch (error) {
+    console.error('Error loading library from URL:', error);
+    showToast(error.message || 'Error loading from URL. Please check the URL and try again.', 'error');
+  } finally {
+    isFileOperationInProgress = false;
+  }
+};
+
+/**
  * Load a set list from a URL
  * @param {string} url - The URL to fetch the set list from
  * @param {Function} onComplete - Callback after load completes
@@ -267,7 +338,17 @@ export const loadSetListFromUrl = async (url, onComplete) => {
       fetchUrl = convertDropboxUrl(url);
     }
 
-    const response = await fetch(fetchUrl);
+    // Add cache-busting timestamp to ensure fresh data
+    const separator = fetchUrl.includes('?') ? '&' : '?';
+    fetchUrl = `${fetchUrl}${separator}_t=${Date.now()}`;
+
+    const response = await fetch(fetchUrl, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
@@ -309,6 +390,7 @@ export const loadSetListFromUrl = async (url, onComplete) => {
 // Make functions globally available
 window.saveLibraryToFile = saveLibraryToFile;
 window.loadLibraryFromFile = loadLibraryFromFile;
+window.loadLibraryFromUrl = loadLibraryFromUrl;
 window.saveSetListToFile = saveSetListToFile;
 window.loadSetListFromFile = loadSetListFromFile;
 window.loadSetListFromUrl = loadSetListFromUrl;

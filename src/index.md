@@ -101,6 +101,7 @@ toc: false
       <div class="library-header">
         <h3 class="library-title" onclick="window.toggleLibrary(event)" style="cursor: pointer;">
           Song Library <span class="filename"></span>
+          <span class="library-search-count"></span>
           <span class="collapse-icon">▼</span>
         </h3>
         <div class="library-controls">
@@ -129,6 +130,14 @@ toc: false
               </svg>
               <span class="btn-text">Load</span>
             </button>
+            <button data-action="load-library-url" title="Load from URL">
+              <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+              </svg>
+              <span class="btn-text">URL</span>
+            </button>
           </div>
         </div>
       </div>
@@ -150,6 +159,7 @@ toc: false
       <h3 class="setlist-title">
         Current Set List
         <span class="filename"></span>
+        <span class="setlist-search-count"></span>
       </h3>
       <div class="setlist-controls">
         <div class="search-container">
@@ -235,9 +245,9 @@ toc: false
       </button>
     </div>
     <div class="modal-body">
-      <p class="modal-hint">Enter a URL to a JSON set list file (e.g., from Google Drive, Dropbox, or any public URL)</p>
+      <p class="modal-hint">Enter a URL to a JSON file (e.g., from Google Drive, Dropbox, or any public URL)</p>
       <input type="url" id="url-input" class="url-input" placeholder="https://..." />
-      <p class="modal-tip">Tip: For Google Drive, use the "Get link" sharing option and ensure "Anyone with link" can view.</p>
+      <p class="modal-tip">Tip: For Google Drive, use the "Get link" sharing option and ensure "Anyone with link" can view. The file must be publicly accessible.</p>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" data-action="close-url-modal">Cancel</button>
@@ -1678,7 +1688,7 @@ button {
   padding: 0.25rem 0.5rem;
   font-size: 0.7rem;
   font-weight: 600;
-  background: var(--secondary);
+  background: var(--text-muted);
   color: white;
   border: none;
   border-radius: var(--radius);
@@ -3225,21 +3235,108 @@ textarea:focus-visible {
     display: none;
   }
 
-  /* Gig mode landscape */
+  /* Gig mode landscape - maximize staff viewing area */
   .gig-mode-header {
-    padding: 0.5rem 1rem;
+    padding: 0.25rem 0.5rem;
+    min-height: 36px;
   }
 
-  .gig-song-item {
-    padding: 0.75rem;
+  .gig-exit-btn {
+    padding: 0.25rem;
+    min-width: 32px;
+    min-height: 32px;
   }
 
-  .gig-mode-nav {
+  .gig-exit-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .gig-progress {
+    font-size: 0.8rem;
+  }
+
+  .gig-tempo-controls {
+    font-size: 0.75rem;
+    gap: 0.25rem;
+  }
+
+  .gig-tempo-toggle {
+    font-size: 0.75rem;
+  }
+
+  .gig-tempo-duration {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.25rem;
+    min-width: 70px;
+  }
+
+  .gig-mode-content {
     padding: 0.5rem;
   }
 
+  .gig-song-item {
+    padding: 0.5rem;
+  }
+
+  .gig-song-item.current {
+    padding: 0.5rem;
+  }
+
+  .gig-song-title {
+    font-size: 0.95rem;
+  }
+
+  .gig-song-notes {
+    font-size: 0.7rem;
+    margin-top: 0.15rem;
+  }
+
+  .gig-song-number {
+    font-size: 1rem;
+    min-width: 2rem;
+  }
+
+  .gig-song-item.current .gig-song-number {
+    font-size: 0.9rem;
+  }
+
+  .gig-current-header {
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .gig-song-info {
+    gap: 0.15rem;
+  }
+
+  .gig-groove-preview {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    min-height: auto;
+  }
+
+  .gig-song-item.current .gig-groove-preview {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    min-height: auto;
+  }
+
+  .gig-mode-nav {
+    padding: 0.25rem 0.5rem;
+    gap: 0.5rem;
+  }
+
   .gig-nav-btn {
-    min-height: 50px;
+    min-height: 36px;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.75rem;
+    gap: 0.25rem;
+  }
+
+  .gig-nav-btn svg {
+    width: 20px;
+    height: 20px;
   }
 }
 
