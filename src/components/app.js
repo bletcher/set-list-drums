@@ -16,10 +16,8 @@ import {
 import {
   saveLibraryToFile,
   loadLibraryFromFile,
-  loadLibraryFromUrl,
   saveSetListToFile,
-  loadSetListFromFile,
-  loadSetListFromUrl
+  loadSetListFromFile
 } from './file-io.js';
 import {
   renderLibrary,
@@ -177,74 +175,6 @@ const setupEventHandlers = () => {
     });
   });
   document.querySelector('[data-action="clear"]')?.addEventListener('click', clearSetList);
-
-  // URL Modal handlers
-  const urlModal = document.getElementById('url-modal');
-  const urlInput = document.getElementById('url-input');
-  const urlModalTitle = urlModal?.querySelector('.modal-header h3');
-  let currentUrlLoadType = 'setlist'; // 'library' or 'setlist'
-
-  const openUrlModal = (type = 'setlist') => {
-    currentUrlLoadType = type;
-    if (urlModalTitle) {
-      urlModalTitle.textContent = type === 'library'
-        ? 'Load Library from URL'
-        : 'Load Set List from URL';
-    }
-    urlModal?.classList.remove('hidden');
-    urlInput?.focus();
-  };
-
-  const closeUrlModal = () => {
-    urlModal?.classList.add('hidden');
-    if (urlInput) urlInput.value = '';
-  };
-
-  const confirmLoadUrl = () => {
-    const url = urlInput?.value.trim();
-    if (!url) {
-      return;
-    }
-    closeUrlModal();
-
-    if (currentUrlLoadType === 'library') {
-      loadLibraryFromUrl(url, () => {
-        renderLibrary();
-        renderFileNames();
-      });
-    } else {
-      loadSetListFromUrl(url, () => {
-        renderSetList();
-        renderFileNames();
-      });
-    }
-  };
-
-  document.querySelector('[data-action="load-library-url"]')?.addEventListener('click', () => openUrlModal('library'));
-  document.querySelector('[data-action="load-url"]')?.addEventListener('click', () => openUrlModal('setlist'));
-  document.querySelector('[data-action="close-url-modal"]')?.addEventListener('click', closeUrlModal);
-  document.querySelectorAll('[data-action="close-url-modal"]').forEach(btn => {
-    btn.addEventListener('click', closeUrlModal);
-  });
-  document.querySelector('[data-action="confirm-load-url"]')?.addEventListener('click', confirmLoadUrl);
-
-  // Close modal on backdrop click
-  urlModal?.addEventListener('click', (e) => {
-    if (e.target === urlModal) {
-      closeUrlModal();
-    }
-  });
-
-  // Handle Enter key in URL input
-  urlInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      confirmLoadUrl();
-    }
-    if (e.key === 'Escape') {
-      closeUrlModal();
-    }
-  });
 
   // Gig Mode handlers
   document.querySelector('[data-action="gig-mode"]')?.addEventListener('click', enterGigMode);

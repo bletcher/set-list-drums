@@ -130,14 +130,6 @@ toc: false
               </svg>
               <span class="btn-text">Load</span>
             </button>
-            <button data-action="load-library-url" title="Load from URL">
-              <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-              </svg>
-              <span class="btn-text">URL</span>
-            </button>
           </div>
         </div>
       </div>
@@ -182,14 +174,6 @@ toc: false
             </svg>
             <span class="btn-text">Load</span>
           </button>
-          <button data-action="load-url" title="Load from URL">
-            <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="2" y1="12" x2="22" y2="12"/>
-              <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-            </svg>
-            <span class="btn-text">URL</span>
-          </button>
           <button data-action="print" title="Print Set List">
             <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="6,9 6,2 18,2 18,9"/>
@@ -228,30 +212,6 @@ toc: false
           <tbody></tbody>
         </table>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- URL Input Modal -->
-<div id="url-modal" class="modal-overlay hidden">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Load Set List from URL</h3>
-      <button class="modal-close" data-action="close-url-modal">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <p class="modal-hint">Enter a URL to a JSON file (e.g., from Google Drive, Dropbox, or any public URL)</p>
-      <input type="url" id="url-input" class="url-input" placeholder="https://..." />
-      <p class="modal-tip">Tip: For Google Drive, use the "Get link" sharing option and ensure "Anyone with link" can view. The file must be publicly accessible.</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-secondary" data-action="close-url-modal">Cancel</button>
-      <button class="btn-primary" data-action="confirm-load-url">Load</button>
     </div>
   </div>
 </div>
@@ -2251,15 +2211,16 @@ textarea:focus-visible {
   border-radius: var(--radius);
   width: 100%;
   box-sizing: border-box;
-  min-height: 80px;
+  min-height: 150px;
   color: #000000; /* Override inherited white color from gig-mode-overlay */
 }
 
 .gig-groove-preview svg {
   display: block;
-  width: 100%;
-  height: auto;
-  max-width: 100%;
+  width: 100% !important;
+  height: auto !important;
+  max-width: none !important;
+  min-height: 180px;
 }
 
 /* Ensure all SVG strokes are black, not inherited white */
@@ -2293,7 +2254,11 @@ textarea:focus-visible {
 .gig-song-item.current .gig-groove-preview {
   margin-top: 0.75rem;
   padding: 1.25rem;
-  min-height: 120px;
+  min-height: 180px;
+}
+
+.gig-song-item.current .gig-groove-preview svg {
+  min-height: 180px;
 }
 
 .gig-mode-nav {

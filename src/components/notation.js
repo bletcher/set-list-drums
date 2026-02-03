@@ -198,8 +198,11 @@ V:1 perc stafflines=5 stem=up
     return;
   }
 
-  // Render using ABCJS
-  const visualObj = ABCJS.renderAbc(elementId, abcString, {
+  // Detect if rendering for gig mode - use larger dimensions
+  const isGigMode = elementId.startsWith('gig-preview');
+
+  // Render using ABCJS with different settings for gig mode
+  const renderOptions = {
     add_classes: true,
     drum: true,
     drumIntro: 0,
@@ -209,37 +212,59 @@ V:1 perc stafflines=5 stem=up
       titleLeft: false,
       showTempoRelative: true,
       defaultQpm: parseInt(bpm),
-      maxspacing: 1.5,
-      staffwidth: 700,
+      maxspacing: isGigMode ? 3.0 : 1.5,
+      staffwidth: isGigMode ? 600 : 700,
       measuresPerLine: 2
     },
     paddingright: 0,
     paddingleft: 0,
-    responsive: 'resize',
+    responsive: isGigMode ? undefined : 'resize',
     showTempo: true
-  });
+  };
+
+  // For gig mode, set explicit larger scale
+  if (isGigMode) {
+    renderOptions.scale = 2.0;
+  }
+
+  const visualObj = ABCJS.renderAbc(elementId, abcString, renderOptions);
 
   // Style the notes after rendering
-  styleRenderedNotes(scoreDiv, voices);
+  const isGigModeElement = elementId.startsWith('gig-preview');
+  styleRenderedNotes(scoreDiv, voices, isGigModeElement);
 };
 
 /**
  * Style the rendered SVG notes based on which are hit vs rest
  * @param {HTMLElement} scoreDiv - The container element
  * @param {Object} voices - The voices object with hit patterns
+ * @param {boolean} isGigMode - Whether this is for gig mode (keeps dimensions)
  */
-const styleRenderedNotes = (scoreDiv, voices) => {
+const styleRenderedNotes = (scoreDiv, voices, isGigMode = false) => {
   const svg = scoreDiv.querySelector('svg');
   if (!svg) return;
 
-  // Make SVG responsive by adding viewBox and removing fixed dimensions
-  const originalWidth = svg.getAttribute('width');
-  const originalHeight = svg.getAttribute('height');
-  if (originalWidth && originalHeight && !svg.getAttribute('viewBox')) {
-    svg.setAttribute('viewBox', `0 0 ${parseFloat(originalWidth)} ${parseFloat(originalHeight)}`);
+  // For gig mode, keep the fixed dimensions to preserve scale
+  // For other views, make SVG responsive by adding viewBox and removing fixed dimensions
+  if (!isGigMode) {
+    const originalWidth = svg.getAttribute('width');
+    const originalHeight = svg.getAttribute('height');
+    if (originalWidth && originalHeight && !svg.getAttribute('viewBox')) {
+      svg.setAttribute('viewBox', `0 0 ${parseFloat(originalWidth)} ${parseFloat(originalHeight)}`);
+    }
+    svg.removeAttribute('width');
+    svg.removeAttribute('height');
+  } else {
+    // For gig mode, ensure width is 100% but keep the original dimensions for proper scaling
+    const originalWidth = svg.getAttribute('width');
+    const originalHeight = svg.getAttribute('height');
+    if (originalWidth && originalHeight && !svg.getAttribute('viewBox')) {
+      svg.setAttribute('viewBox', `0 0 ${parseFloat(originalWidth)} ${parseFloat(originalHeight)}`);
+    }
+    // Keep the dimensions but make them responsive
+    svg.style.width = '100%';
+    svg.style.height = 'auto';
   }
-  svg.removeAttribute('width');
-  svg.removeAttribute('height');
 
   const notes = svg.querySelectorAll('.abcjs-note');
 
