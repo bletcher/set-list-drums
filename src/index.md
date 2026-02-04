@@ -100,18 +100,19 @@ toc: false
     <div class="card">
       <div class="library-header">
         <h3 class="library-title" onclick="window.toggleLibrary(event)" style="cursor: pointer;">
-          Song Library <span class="filename"></span>
-          <span class="library-search-count"></span>
+          Song Library
+          <span class="filename"></span>
           <span class="collapse-icon">▼</span>
         </h3>
         <div class="library-controls">
-          <div class="search-container">
+          <div class="search-with-count">
             <input
               type="search"
               id="library-search"
               placeholder="Search songs..."
               class="search-input"
             >
+            <span class="library-search-count"></span>
           </div>
           <div class="button-group">
             <button data-action="save-library" title="Save Library">
@@ -151,11 +152,11 @@ toc: false
       <h3 class="setlist-title">
         Current Set List
         <span class="filename"></span>
-        <span class="setlist-search-count"></span>
       </h3>
       <div class="setlist-controls">
-        <div class="search-container">
-          <input type="search" id="setlist-search" placeholder="Search set list...">
+        <div class="search-with-count">
+          <input type="search" id="setlist-search" placeholder="Search set list..." class="search-input">
+          <span class="setlist-search-count"></span>
         </div>
         <div class="button-group">
           <button data-action="save-setlist" title="Save Set List">
@@ -190,6 +191,13 @@ toc: false
             </svg>
             <span class="btn-text">Gig</span>
           </button>
+          <button data-action="clean" title="Remove deleted songs from set list">
+            <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+              <polyline points="22,4 12,14.01 9,11.01"/>
+            </svg>
+            <span class="btn-text">Clean</span>
+          </button>
           <button data-action="clear" class="btn-danger" title="Clear Set List">
             <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3,6 5,6 21,6"/>
@@ -218,30 +226,18 @@ toc: false
 
 <!-- Gig Mode Overlay -->
 <div id="gig-mode-overlay" class="gig-mode-overlay hidden">
-  <div class="gig-mode-header">
-    <button class="gig-exit-btn" data-action="exit-gig-mode">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"/>
-        <line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-    <div class="gig-tempo-controls">
-      <label class="gig-tempo-toggle">
-        <input type="checkbox" id="tempo-blink-toggle">
-        <span class="toggle-label">Tempo</span>
-      </label>
-      <select id="tempo-blink-count" class="gig-tempo-duration" disabled>
-        <option value="4">4 clicks</option>
-        <option value="8" selected>8 clicks</option>
-        <option value="16">16 clicks</option>
-        <option value="32">32 clicks</option>
-      </select>
-    </div>
-    <span class="gig-progress"></span>
-  </div>
+  <!-- Floating close button (top-right corner) -->
+  <button class="gig-exit-btn" data-action="exit-gig-mode">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+
   <div class="gig-mode-content">
     <div class="gig-song-list"></div>
   </div>
+
   <div class="gig-mode-nav">
     <button class="gig-nav-btn" data-action="gig-prev">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -249,6 +245,21 @@ toc: false
       </svg>
       Prev
     </button>
+    <div class="gig-nav-center">
+      <div class="gig-tempo-controls">
+        <label class="gig-tempo-toggle">
+          <input type="checkbox" id="tempo-blink-toggle">
+          <span class="toggle-label">Tempo</span>
+        </label>
+        <select id="tempo-blink-count" class="gig-tempo-duration" disabled>
+          <option value="4">4</option>
+          <option value="8" selected>8</option>
+          <option value="16">16</option>
+          <option value="32">32</option>
+        </select>
+      </div>
+      <span class="gig-progress"></span>
+    </div>
     <button class="gig-nav-btn" data-action="gig-next">
       Next
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -869,7 +880,8 @@ input[name="measureCount"] {
 .setlist-title {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .filename {
@@ -1025,7 +1037,9 @@ mark {
 .library-title {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0;
   user-select: none;
 }
 
@@ -1067,9 +1081,25 @@ mark {
   flex-wrap: wrap;
 }
 
-.search-container {
+.search-with-count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   flex: 1;
   min-width: 200px;
+}
+
+.search-with-count .search-input {
+  flex: 1;
+  min-width: 150px;
+}
+
+.library-search-count,
+.setlist-search-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Update collapse styles */
@@ -2088,33 +2118,31 @@ textarea:focus-visible {
   display: none;
 }
 
-.gig-mode-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background: #1e293b;
-  border-bottom: 1px solid #334155;
-}
-
 .gig-exit-btn {
-  background: transparent;
-  border: none;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid #475569;
   color: white;
   padding: 0.5rem;
   cursor: pointer;
   border-radius: var(--radius);
-  transition: background 0.2s;
+  transition: all 0.2s;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 .gig-exit-btn:hover {
   background: #334155;
+  transform: scale(1.05);
 }
 
 .gig-progress {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #94a3b8;
+  white-space: nowrap;
 }
 
 .gig-mode-content {
@@ -2136,7 +2164,7 @@ textarea:focus-visible {
   border-radius: var(--radius-lg);
   border: 2px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -2149,9 +2177,39 @@ textarea:focus-visible {
 .gig-song-item.current {
   background: var(--primary);
   border-color: var(--primary-light);
-  transform: scale(1.02);
+  display: flex;
   flex-direction: column;
   align-items: stretch;
+  transition: none;
+  max-height: 75vh; /* Default for narrow screens */
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 0.75rem; /* Reduced from 1.25rem to minimize overhead */
+}
+
+/* Responsive max-height matching notation scale thresholds */
+@media (min-width: 400px) {
+  .gig-song-item.current {
+    max-height: 76vh;
+  }
+}
+
+@media (min-width: 600px) {
+  .gig-song-item.current {
+    max-height: 77vh;
+  }
+}
+
+@media (min-width: 800px) {
+  .gig-song-item.current {
+    max-height: 78vh;
+  }
+}
+
+@media (min-width: 1200px) {
+  .gig-song-item.current {
+    max-height: 80vh;
+  }
 }
 
 .gig-song-item.played {
@@ -2205,14 +2263,17 @@ textarea:focus-visible {
 
 /* Gig mode groove preview - reuse .groove-preview styles */
 .gig-groove-preview {
-  margin-top: 1rem;
-  padding: 1rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
   background: #ffffff;
   border-radius: var(--radius);
   width: 100%;
   box-sizing: border-box;
-  min-height: 150px;
   color: #000000; /* Override inherited white color from gig-mode-overlay */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .gig-groove-preview svg {
@@ -2220,7 +2281,6 @@ textarea:focus-visible {
   width: 100% !important;
   height: auto !important;
   max-width: none !important;
-  min-height: 180px;
 }
 
 /* Ensure all SVG strokes are black, not inherited white */
@@ -2252,30 +2312,62 @@ textarea:focus-visible {
 
 /* Current song groove preview - full width, larger */
 .gig-song-item.current .gig-groove-preview {
-  margin-top: 0.75rem;
-  padding: 1.25rem;
-  min-height: 180px;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  overflow: visible;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .gig-song-item.current .gig-groove-preview svg {
-  min-height: 180px;
+  /* SVG height determined by its intrinsic aspect ratio */
+  max-height: none !important;
+  overflow: visible;
+  flex: 1;
+}
+
+.gig-song-item.current .groove-preview {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  flex: 1;
+  min-height: 0;
+}
+
+.gig-song-item.current .groove-preview-container {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  flex: 1;
+  min-height: 0;
 }
 
 .gig-mode-nav {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: #1e293b;
   border-top: 1px solid #334155;
 }
 
-.gig-nav-btn {
+.gig-nav-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
   flex: 1;
+  max-width: 300px;
+}
+
+.gig-nav-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   font-size: 1.1rem;
   font-weight: 600;
   background: #334155;
@@ -2285,6 +2377,7 @@ textarea:focus-visible {
   cursor: pointer;
   transition: all 0.2s ease;
   min-height: 60px;
+  min-width: 120px;
 }
 
 .gig-nav-btn:hover {
@@ -2304,6 +2397,7 @@ textarea:focus-visible {
 .gig-tempo-controls {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
 }
 
@@ -2314,6 +2408,7 @@ textarea:focus-visible {
   cursor: pointer;
   color: #94a3b8;
   font-size: 0.875rem;
+  white-space: nowrap;
 }
 
 .gig-tempo-toggle input[type="checkbox"] {
@@ -2324,13 +2419,15 @@ textarea:focus-visible {
 }
 
 .gig-tempo-duration {
-  padding: 0.375rem 0.5rem;
-  background: #1e293b;
+  padding: 0.375rem 0.75rem;
+  background: #0f172a;
   border: 1px solid #475569;
   border-radius: var(--radius);
   color: white;
   font-size: 0.875rem;
   cursor: pointer;
+  min-width: 50px;
+  text-align: center;
 }
 
 .gig-tempo-duration option {
@@ -2620,17 +2717,26 @@ textarea:focus-visible {
     font-size: 1rem;
   }
 
-  .library-controls {
+  .library-search-count,
+  .setlist-search-count {
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .library-controls,
+  .setlist-controls {
     flex-direction: column;
     gap: 0.5rem;
+    align-items: stretch;
   }
 
-  .library-controls .search-container {
+  .search-with-count {
     width: 100%;
-    max-width: none;
+    min-width: auto;
   }
 
-  .library-controls .button-group {
+  .library-controls .button-group,
+  .setlist-controls .button-group {
     width: 100%;
     justify-content: space-between;
   }
@@ -2640,11 +2746,6 @@ textarea:focus-visible {
     flex-direction: column;
     align-items: stretch;
     gap: 0.75rem;
-  }
-
-  .setlist-controls .search-container {
-    width: 100%;
-    max-width: none;
   }
 
   .setlist-controls .button-group {
@@ -3162,14 +3263,40 @@ textarea:focus-visible {
     min-width: 2.5rem;
   }
 
+  .gig-mode-nav {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .gig-nav-center {
+    max-width: 200px;
+    gap: 0.35rem;
+  }
+
   .gig-nav-btn {
     min-height: 60px;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    padding: 0.75rem 1rem;
+    min-width: 100px;
   }
 
   .gig-nav-btn svg {
     width: 24px;
     height: 24px;
+  }
+
+  .gig-tempo-toggle {
+    font-size: 0.8rem;
+  }
+
+  .gig-tempo-duration {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    min-width: 45px;
+  }
+
+  .gig-progress {
+    font-size: 0.8rem;
   }
 }
 
@@ -3201,12 +3328,9 @@ textarea:focus-visible {
   }
 
   /* Gig mode landscape - maximize staff viewing area */
-  .gig-mode-header {
-    padding: 0.25rem 0.5rem;
-    min-height: 36px;
-  }
-
   .gig-exit-btn {
+    top: 0.5rem;
+    right: 0.5rem;
     padding: 0.25rem;
     min-width: 32px;
     min-height: 32px;
@@ -3292,11 +3416,17 @@ textarea:focus-visible {
     gap: 0.5rem;
   }
 
+  .gig-nav-center {
+    gap: 0.25rem;
+    max-width: 180px;
+  }
+
   .gig-nav-btn {
     min-height: 36px;
     font-size: 0.85rem;
     padding: 0.25rem 0.75rem;
     gap: 0.25rem;
+    min-width: 80px;
   }
 
   .gig-nav-btn svg {

@@ -32,10 +32,21 @@ export const renderSetList = (searchTerm = '') => {
   // Count matches for display
   let matchCount = 0;
 
+  // Count total valid songs for position selector
+  const validSongCount = state.currentSetList.filter(songId =>
+    state.songLibrary.get(songId)
+  ).length;
+
+  // Track display position (only increments when songs are actually rendered)
+  let displayPosition = 0;
+
   // Render all songs in the set list
   state.currentSetList.forEach((songId, index) => {
     const song = state.songLibrary.get(songId);
     if (!song) return;
+
+    // Increment display position for each rendered song
+    displayPosition++;
 
     // Check if this song matches the search term
     const matchesSearch = searchTerm && (
@@ -60,10 +71,10 @@ export const renderSetList = (searchTerm = '') => {
     const positionSelector = document.createElement('div');
     positionSelector.className = 'position-selector';
     positionSelector.innerHTML = `
-      <span class="position-number" title="Click to change position">${index + 1}</span>
-      <select class="position-select" style="display: none;">
-        ${Array.from({ length: state.currentSetList.length }, (_, i) =>
-          `<option value="${i}" ${i === index ? 'selected' : ''}>${i + 1}</option>`
+      <span class="position-number" title="Click to change position">${displayPosition}</span>
+      <select class="position-select" style="display: none;" data-current-display-pos="${displayPosition}">
+        ${Array.from({ length: validSongCount }, (_, i) =>
+          `<option value="${i + 1}" ${i + 1 === displayPosition ? 'selected' : ''}>${i + 1}</option>`
         ).join('')}
       </select>
     `;
@@ -141,12 +152,12 @@ export const renderSetList = (searchTerm = '') => {
     tbody.appendChild(grooveRow);
   });
 
-  // Update search count
+  // Update search count (use displayPosition which is the count of valid rendered songs)
   if (searchCount) {
     if (searchTerm) {
-      searchCount.textContent = `(${matchCount} of ${state.currentSetList.length} songs)`;
+      searchCount.textContent = `(${matchCount} of ${displayPosition} songs)`;
     } else {
-      searchCount.textContent = `(${state.currentSetList.length} songs)`;
+      searchCount.textContent = `(${displayPosition} songs)`;
     }
     searchCount.style.display = 'inline';
   }
@@ -217,10 +228,46 @@ const setupPositionSelector = (positionSelector, index, searchTerm) => {
   });
 
   select.addEventListener('change', (e) => {
-    const newPosition = parseInt(e.target.value);
-    if (newPosition !== index) {
-      state.moveInSetList(index, newPosition);
-      renderSetList(searchTerm);
+    const targetDisplayPosition = parseInt(e.target.value);
+    const currentDisplayPosition = parseInt(e.target.dataset.currentDisplayPos);
+
+    if (targetDisplayPosition !== currentDisplayPosition) {
+      // Build list of valid array indices (excluding the current song)
+      const validIndices = [];
+      state.currentSetList.forEach((songId, i) => {
+        if (i !== index && state.songLibrary.get(songId)) {
+          validIndices.push(i);
+        }
+      });
+
+      // Calculate target array index
+      let targetArrayIndex;
+
+      if (targetDisplayPosition === 1) {
+        // Moving to first position
+        targetArrayIndex = 0;
+      } else if (targetDisplayPosition > validIndices.length) {
+        // Moving to last position - insert after the last valid song
+        const lastValidIndex = validIndices[validIndices.length - 1];
+        targetArrayIndex = lastValidIndex + 1;
+      } else {
+        // Moving to middle position
+        // The target is to be inserted before the song at targetDisplayPosition
+        // (after we remove the current song from the list)
+        const insertBeforeIndex = validIndices[targetDisplayPosition - 1];
+
+        // Adjust for the fact that removing the current item shifts indices
+        if (index < insertBeforeIndex) {
+          targetArrayIndex = insertBeforeIndex - 1;
+        } else {
+          targetArrayIndex = insertBeforeIndex;
+        }
+      }
+
+      if (targetArrayIndex !== index) {
+        state.moveInSetList(index, targetArrayIndex);
+        renderSetList(searchTerm);
+      }
     }
   });
 
@@ -373,6 +420,20 @@ export const clearSetList = () => {
 };
 
 /**
+ * Clean orphaned songs from the set list
+ */
+export const cleanSetList = () => {
+  const removedCount = state.cleanSetList();
+
+  if (removedCount === 0) {
+    showToast('No orphaned songs found', 'info');
+  } else {
+    renderSetList();
+    showToast(`Removed ${removedCount} deleted song${removedCount > 1 ? 's' : ''} from set list`, 'success');
+  }
+};
+
+/**
  * Remove a song from the set list by index
  * @param {number} index - The index to remove
  */
@@ -449,6 +510,43 @@ export const debouncedSetListSearch = debounce((searchTerm) => {
 let gigModeCurrentIndex = 0;
 let tempoBlinkTimeout = null;
 let tempoBlinkEnabled = false;
+let wakeLock = null;
+let gigModeResizeTimeout = null;
+let lastGigModeScale = 1.5; // Track the last scale used
+
+/**
+ * Request wake lock to prevent screen from sleeping
+ */
+const requestWakeLock = async () => {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('Wake Lock activated');
+
+      // Re-request wake lock if it's released (e.g., page becomes hidden)
+      wakeLock.addEventListener('release', () => {
+        console.log('Wake Lock released');
+      });
+    }
+  } catch (err) {
+    console.warn('Wake Lock error:', err);
+  }
+};
+
+/**
+ * Release wake lock to allow screen to sleep
+ */
+const releaseWakeLock = async () => {
+  if (wakeLock) {
+    try {
+      await wakeLock.release();
+      wakeLock = null;
+      console.log('Wake Lock released');
+    } catch (err) {
+      console.warn('Wake Lock release error:', err);
+    }
+  }
+};
 
 /**
  * Enter Gig Mode - full-screen mobile-friendly set list view
@@ -462,16 +560,160 @@ export const enterGigMode = () => {
     return;
   }
 
+  // Start at first valid song (skip any deleted songs at the beginning)
   gigModeCurrentIndex = 0;
+  while (gigModeCurrentIndex < state.currentSetList.length) {
+    if (state.songLibrary.get(state.currentSetList[gigModeCurrentIndex])) {
+      break;
+    }
+    gigModeCurrentIndex++;
+  }
+
+  // If no valid songs found, show error
+  if (gigModeCurrentIndex >= state.currentSetList.length) {
+    showToast('No valid songs in set list', 'error');
+    return;
+  }
+
   overlay.classList.remove('hidden');
+
+  // Initialize scale tracking
+  lastGigModeScale = calculateGigModeScale();
+
   renderGigModeList();
   updateGigModeProgress();
 
   // Prevent body scroll while in gig mode
   document.body.style.overflow = 'hidden';
 
+  // Request wake lock to keep screen on
+  requestWakeLock();
+
   // Set up touch/swipe events
   setupGigModeSwipe(overlay);
+
+  // Set up visibility change handler to re-request wake lock
+  setupWakeLockVisibilityHandler();
+
+  // Set up resize handler to recalculate SVG heights
+  window.addEventListener('resize', handleGigModeResize);
+};
+
+/**
+ * Set up handler to re-request wake lock when page becomes visible
+ */
+const setupWakeLockVisibilityHandler = () => {
+  // Remove existing listener if any
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+
+  // Add new listener
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+};
+
+/**
+ * Handle visibility changes to maintain wake lock in gig mode
+ */
+const handleVisibilityChange = async () => {
+  const overlay = document.getElementById('gig-mode-overlay');
+  const isGigModeActive = overlay && !overlay.classList.contains('hidden');
+
+  if (document.visibilityState === 'visible' && isGigModeActive) {
+    // Re-request wake lock when page becomes visible and gig mode is active
+    await requestWakeLock();
+  }
+};
+
+/**
+ * Calculate gig mode scale based on viewport width
+ * (Must match logic in notation.js)
+ */
+const calculateGigModeScale = () => {
+  const vw = window.innerWidth;
+  if (vw < 400) return 1.2;
+  if (vw < 600) return 1.5;
+  if (vw < 800) return 1.8;
+  if (vw < 1200) return 2.0;
+  return 2.5;
+};
+
+/**
+ * Handle window resize in gig mode to recalculate SVG heights
+ */
+const handleGigModeResize = () => {
+  // Debounce resize events
+  if (gigModeResizeTimeout) {
+    clearTimeout(gigModeResizeTimeout);
+  }
+
+  gigModeResizeTimeout = setTimeout(() => {
+    const newScale = calculateGigModeScale();
+
+    // Check if scale has changed enough to warrant re-rendering
+    if (Math.abs(newScale - lastGigModeScale) > 0.01) {
+      // Scale changed significantly - re-render the gig mode list
+      lastGigModeScale = newScale;
+      renderGigModeList();
+      updateGigModeProgress();
+    } else {
+      // Scale hasn't changed - just recalculate heights based on available space
+      const gigSvgs = document.querySelectorAll('.gig-song-item.current svg[data-aspect-ratio]');
+      gigSvgs.forEach(svg => {
+        const aspectRatio = parseFloat(svg.dataset.aspectRatio);
+        if (aspectRatio) {
+          const container = svg.parentElement;
+          const gigSongItem = svg.closest('.gig-song-item.current');
+
+          if (container && gigSongItem) {
+            // Get the actual constrained height of the parent card
+            const cardHeight = gigSongItem.clientHeight;
+
+            // Calculate overhead from all elements except the SVG container
+            const header = gigSongItem.querySelector('.gig-current-header');
+            const notes = gigSongItem.querySelector('.gig-song-notes');
+            const groovePreview = svg.closest('.gig-groove-preview');
+
+            let overhead = 0;
+            if (header) overhead += header.offsetHeight;
+            if (notes) overhead += notes.offsetHeight;
+
+            // Add padding from various containers
+            const cardStyle = window.getComputedStyle(gigSongItem);
+            const grooveStyle = groovePreview ? window.getComputedStyle(groovePreview) : null;
+
+            overhead += parseFloat(cardStyle.paddingTop) + parseFloat(cardStyle.paddingBottom);
+            if (grooveStyle) {
+              overhead += parseFloat(grooveStyle.paddingTop) + parseFloat(grooveStyle.paddingBottom);
+              overhead += parseFloat(grooveStyle.marginTop);
+            }
+
+            // Calculate available height for SVG
+            const availableHeight = cardHeight - overhead;
+
+            // Calculate possible dimensions
+            const containerWidth = container.offsetWidth;
+            const heightBasedOnWidth = containerWidth * aspectRatio;
+            const widthBasedOnHeight = availableHeight / aspectRatio;
+
+            // Use the dimension that fits within constraints
+            if (heightBasedOnWidth <= availableHeight) {
+              // Width-based sizing fits
+              svg.style.width = '100%';
+              svg.style.height = `${heightBasedOnWidth}px`;
+            } else {
+              // Height-based sizing needed to fit vertical space
+              svg.style.width = `${widthBasedOnHeight}px`;
+              svg.style.height = `${availableHeight}px`;
+              svg.style.maxWidth = '100%';
+              svg.style.margin = '0 auto';
+            }
+
+            // Force reflow
+            void gigSongItem.offsetHeight;
+          }
+        }
+      });
+    }
+  }, 150);
 };
 
 /**
@@ -483,6 +725,21 @@ export const exitGigMode = () => {
 
   overlay.classList.add('hidden');
   document.body.style.overflow = '';
+
+  // Release wake lock to allow screen to sleep
+  releaseWakeLock();
+
+  // Remove visibility change handler
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+
+  // Remove resize handler
+  window.removeEventListener('resize', handleGigModeResize);
+
+  // Clear any pending resize timeout
+  if (gigModeResizeTimeout) {
+    clearTimeout(gigModeResizeTimeout);
+    gigModeResizeTimeout = null;
+  }
 };
 
 /**
@@ -492,9 +749,15 @@ const renderGigModeList = () => {
   const songList = document.querySelector('.gig-song-list');
   if (!songList) return;
 
+  // Track display position for rendered songs only
+  let displayPosition = 0;
+
   songList.innerHTML = state.currentSetList.map((songId, index) => {
     const song = state.songLibrary.get(songId);
     if (!song) return '';
+
+    // Increment display position for each rendered song
+    displayPosition++;
 
     const isCurrent = index === gigModeCurrentIndex;
     const isPlayed = index < gigModeCurrentIndex;
@@ -506,7 +769,7 @@ const renderGigModeList = () => {
         <div class="gig-song-item current"
              data-index="${index}" data-song-id="${songId}">
           <div class="gig-current-header">
-            <span class="gig-song-number">${index + 1}</span>
+            <span class="gig-song-number">${displayPosition}</span>
             <div class="gig-song-title">${song.title}</div>
           </div>
           ${song.notes ? `<div class="gig-song-notes">${song.notes}</div>` : ''}
@@ -526,7 +789,7 @@ const renderGigModeList = () => {
     return `
       <div class="gig-song-item ${isPlayed ? 'played' : ''}"
            data-index="${index}" data-song-id="${songId}">
-        <span class="gig-song-number">${index + 1}</span>
+        <span class="gig-song-number">${displayPosition}</span>
         <div class="gig-song-info">
           <div class="gig-song-title">${song.title}</div>
           ${song.notes ? `<div class="gig-song-notes">${song.notes}</div>` : ''}
@@ -568,15 +831,46 @@ const renderGigModeList = () => {
 const updateGigModeProgress = () => {
   const progress = document.querySelector('.gig-progress');
   if (progress) {
-    progress.textContent = `${gigModeCurrentIndex + 1} / ${state.currentSetList.length}`;
+    // Count valid songs only (songs that exist in library)
+    const validSongCount = state.currentSetList.filter(songId =>
+      state.songLibrary.get(songId)
+    ).length;
+
+    // Calculate current position among valid songs
+    let currentDisplayPosition = 0;
+    for (let i = 0; i <= gigModeCurrentIndex; i++) {
+      if (state.songLibrary.get(state.currentSetList[i])) {
+        currentDisplayPosition++;
+      }
+    }
+
+    progress.textContent = `${currentDisplayPosition} / ${validSongCount}`;
   }
 
   // Update nav button states
   const prevBtn = document.querySelector('[data-action="gig-prev"]');
   const nextBtn = document.querySelector('[data-action="gig-next"]');
 
-  if (prevBtn) prevBtn.disabled = gigModeCurrentIndex === 0;
-  if (nextBtn) nextBtn.disabled = gigModeCurrentIndex >= state.currentSetList.length - 1;
+  // Check if there's a valid song before current position
+  let hasValidPrev = false;
+  for (let i = gigModeCurrentIndex - 1; i >= 0; i--) {
+    if (state.songLibrary.get(state.currentSetList[i])) {
+      hasValidPrev = true;
+      break;
+    }
+  }
+
+  // Check if there's a valid song after current position
+  let hasValidNext = false;
+  for (let i = gigModeCurrentIndex + 1; i < state.currentSetList.length; i++) {
+    if (state.songLibrary.get(state.currentSetList[i])) {
+      hasValidNext = true;
+      break;
+    }
+  }
+
+  if (prevBtn) prevBtn.disabled = !hasValidPrev;
+  if (nextBtn) nextBtn.disabled = !hasValidNext;
 };
 
 /**
@@ -595,14 +889,20 @@ const scrollToCurrentGigSong = () => {
  * Navigate to the next song in Gig Mode
  */
 export const gigModeNext = () => {
-  if (gigModeCurrentIndex < state.currentSetList.length - 1) {
-    gigModeCurrentIndex++;
-    renderGigModeList();
-    updateGigModeProgress();
-    // Start tempo blink if enabled
-    if (tempoBlinkEnabled) {
-      startTempoBlink();
+  // Find the next valid song (skip deleted songs)
+  let nextIndex = gigModeCurrentIndex + 1;
+  while (nextIndex < state.currentSetList.length) {
+    if (state.songLibrary.get(state.currentSetList[nextIndex])) {
+      gigModeCurrentIndex = nextIndex;
+      renderGigModeList();
+      updateGigModeProgress();
+      // Start tempo blink if enabled
+      if (tempoBlinkEnabled) {
+        startTempoBlink();
+      }
+      break;
     }
+    nextIndex++;
   }
 };
 
@@ -610,10 +910,16 @@ export const gigModeNext = () => {
  * Navigate to the previous song in Gig Mode
  */
 export const gigModePrev = () => {
-  if (gigModeCurrentIndex > 0) {
-    gigModeCurrentIndex--;
-    renderGigModeList();
-    updateGigModeProgress();
+  // Find the previous valid song (skip deleted songs)
+  let prevIndex = gigModeCurrentIndex - 1;
+  while (prevIndex >= 0) {
+    if (state.songLibrary.get(state.currentSetList[prevIndex])) {
+      gigModeCurrentIndex = prevIndex;
+      renderGigModeList();
+      updateGigModeProgress();
+      break;
+    }
+    prevIndex--;
   }
 };
 
@@ -728,6 +1034,7 @@ export const stopTempoBlink = () => {
 window.handleSetlistAction = handleSetlistAction;
 window.removeFromSet = removeFromSet;
 window.clearSetList = clearSetList;
+window.cleanSetList = cleanSetList;
 window.renderSetList = renderSetList;
 window.enterGigMode = enterGigMode;
 window.exitGigMode = exitGigMode;

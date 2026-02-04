@@ -201,6 +201,24 @@ V:1 perc stafflines=5 stem=up
   // Detect if rendering for gig mode - use larger dimensions
   const isGigMode = elementId.startsWith('gig-preview');
 
+  // Calculate responsive scale for gig mode based on viewport width
+  let gigModeScale = 1.5;
+  if (isGigMode && typeof window !== 'undefined') {
+    const vw = window.innerWidth;
+    // Scale from 1.2 (narrow) to 2.5 (wide)
+    if (vw < 400) {
+      gigModeScale = 1.2;
+    } else if (vw < 600) {
+      gigModeScale = 1.5;
+    } else if (vw < 800) {
+      gigModeScale = 1.8;
+    } else if (vw < 1200) {
+      gigModeScale = 2.0;
+    } else {
+      gigModeScale = 2.5;
+    }
+  }
+
   // Render using ABCJS with different settings for gig mode
   const renderOptions = {
     add_classes: true,
@@ -222,9 +240,9 @@ V:1 perc stafflines=5 stem=up
     showTempo: true
   };
 
-  // For gig mode, set explicit larger scale
+  // For gig mode, set responsive scale
   if (isGigMode) {
-    renderOptions.scale = 2.0;
+    renderOptions.scale = gigModeScale;
   }
 
   const visualObj = ABCJS.renderAbc(elementId, abcString, renderOptions);
@@ -255,15 +273,89 @@ const styleRenderedNotes = (scoreDiv, voices, isGigMode = false) => {
     svg.removeAttribute('width');
     svg.removeAttribute('height');
   } else {
-    // For gig mode, ensure width is 100% but keep the original dimensions for proper scaling
+    // For gig mode, size SVG to fill available vertical space
     const originalWidth = svg.getAttribute('width');
     const originalHeight = svg.getAttribute('height');
-    if (originalWidth && originalHeight && !svg.getAttribute('viewBox')) {
-      svg.setAttribute('viewBox', `0 0 ${parseFloat(originalWidth)} ${parseFloat(originalHeight)}`);
+    if (originalWidth && originalHeight) {
+      const width = parseFloat(originalWidth);
+      const height = parseFloat(originalHeight);
+
+      // Set viewBox if not already set
+      if (!svg.getAttribute('viewBox')) {
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      }
+
+      // Store aspect ratio as a data attribute
+      const aspectRatio = height / width;
+      svg.dataset.aspectRatio = aspectRatio.toString();
+
+      // Remove fixed dimensions
+      svg.removeAttribute('width');
+      svg.removeAttribute('height');
+
+      // Use flex to fill available space
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.maxWidth = '100%';
+      svg.style.maxHeight = '100%';
+      svg.style.objectFit = 'contain';
+
+      // Calculate and set explicit height based on available vertical space
+      requestAnimationFrame(() => {
+        const container = svg.parentElement;
+        if (container) {
+          // Get available height in the container (accounting for its constraints)
+          const gigSongItem = svg.closest('.gig-song-item.current');
+          if (gigSongItem) {
+            // Get the actual constrained height of the parent card
+            const cardHeight = gigSongItem.clientHeight;
+
+            // Calculate overhead from all elements except the SVG container
+            const header = gigSongItem.querySelector('.gig-current-header');
+            const notes = gigSongItem.querySelector('.gig-song-notes');
+            const groovePreview = svg.closest('.gig-groove-preview');
+
+            let overhead = 0;
+            if (header) overhead += header.offsetHeight;
+            if (notes) overhead += notes.offsetHeight;
+
+            // Add padding from various containers
+            const cardStyle = window.getComputedStyle(gigSongItem);
+            const grooveStyle = groovePreview ? window.getComputedStyle(groovePreview) : null;
+
+            overhead += parseFloat(cardStyle.paddingTop) + parseFloat(cardStyle.paddingBottom);
+            if (grooveStyle) {
+              overhead += parseFloat(grooveStyle.paddingTop) + parseFloat(grooveStyle.paddingBottom);
+              overhead += parseFloat(grooveStyle.marginTop);
+            }
+
+            // Calculate available height for SVG
+            const availableHeight = cardHeight - overhead;
+
+            // Calculate possible dimensions
+            const containerWidth = container.offsetWidth;
+            const heightBasedOnWidth = containerWidth * aspectRatio;
+            const widthBasedOnHeight = availableHeight / aspectRatio;
+
+            // Use the dimension that fits within constraints
+            if (heightBasedOnWidth <= availableHeight) {
+              // Width-based sizing fits
+              svg.style.width = '100%';
+              svg.style.height = `${heightBasedOnWidth}px`;
+            } else {
+              // Height-based sizing needed to fit vertical space
+              svg.style.width = `${widthBasedOnHeight}px`;
+              svg.style.height = `${availableHeight}px`;
+              svg.style.maxWidth = '100%';
+              svg.style.margin = '0 auto';
+            }
+
+            // Force reflow
+            void gigSongItem.offsetHeight;
+          }
+        }
+      });
     }
-    // Keep the dimensions but make them responsive
-    svg.style.width = '100%';
-    svg.style.height = 'auto';
   }
 
   const notes = svg.querySelectorAll('.abcjs-note');

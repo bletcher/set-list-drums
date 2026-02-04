@@ -107,6 +107,22 @@ const state = {
   },
 
   /**
+   * Remove orphaned song IDs from set list (songs that no longer exist in library)
+   * @returns {number} - Number of orphaned songs removed
+   */
+  cleanSetList() {
+    const originalLength = this.currentSetList.length;
+    this.currentSetList = this.currentSetList.filter(songId =>
+      this.songLibrary.has(songId)
+    );
+    const removedCount = originalLength - this.currentSetList.length;
+    if (removedCount > 0) {
+      this._persistSetList();
+    }
+    return removedCount;
+  },
+
+  /**
    * Reorder songs in the library
    * @param {number} fromIndex - The current index
    * @param {number} toIndex - The target index

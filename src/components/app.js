@@ -32,6 +32,7 @@ import {
   renderSetList,
   handleSetlistAction,
   clearSetList,
+  cleanSetList,
   setupDragScroll,
   debouncedSetListSearch,
   enterGigMode,
@@ -174,6 +175,7 @@ const setupEventHandlers = () => {
       renderFileNames();
     });
   });
+  document.querySelector('[data-action="clean"]')?.addEventListener('click', cleanSetList);
   document.querySelector('[data-action="clear"]')?.addEventListener('click', clearSetList);
 
   // Gig Mode handlers
