@@ -1,6 +1,9 @@
 // ABC Notation generation and ABCJS rendering for Set List Drums
 import { debounce } from './utils.js';
 
+// Maximum number of retries for ABCJS loading
+const MAX_ABCJS_RETRIES = 50; // 50 retries * 100ms = 5 seconds max wait
+
 /**
  * Parse note division value (handles triplets like "8t", "16t")
  * @param {string} value - The note division value
@@ -97,8 +100,9 @@ V:1 perc stafflines=5 stem=up
  * @param {string} grooveString - The groove pattern
  * @param {string} elementId - The ID of the element to render into
  * @param {Object} settings - Time signature and tempo settings
+ * @param {number} retryCount - Internal retry counter (default 0)
  */
-const renderScoreInternal = (grooveString, elementId = 'groove-preview', settings = null) => {
+const renderScoreInternal = (grooveString, elementId = 'groove-preview', settings = null, retryCount = 0) => {
   const scoreDiv = document.getElementById(elementId);
   if (!grooveString || !scoreDiv) {
     if (scoreDiv) scoreDiv.innerHTML = '';
@@ -193,8 +197,15 @@ V:1 perc stafflines=5 stem=up
 
   // Check if ABCJS is available
   if (typeof ABCJS === 'undefined') {
-    console.warn('ABCJS not loaded yet, retrying...');
-    setTimeout(() => renderScoreInternal(grooveString, elementId, settings), 100);
+    if (retryCount >= MAX_ABCJS_RETRIES) {
+      console.error('ABCJS failed to load after maximum retries');
+      if (scoreDiv) {
+        scoreDiv.innerHTML = '<div style="padding: 1rem; color: #dc2626; text-align: center;">Unable to load music notation library. Please refresh the page.</div>';
+      }
+      return;
+    }
+    console.warn(`ABCJS not loaded yet, retrying... (${retryCount + 1}/${MAX_ABCJS_RETRIES})`);
+    setTimeout(() => renderScoreInternal(grooveString, elementId, settings, retryCount + 1), 100);
     return;
   }
 
@@ -205,17 +216,15 @@ V:1 perc stafflines=5 stem=up
   let gigModeScale = 1.5;
   if (isGigMode && typeof window !== 'undefined') {
     const vw = window.innerWidth;
-    // Scale from 1.2 (narrow) to 2.5 (wide)
+    // Scale from 1.2 (narrow) to 1.5 (wide), capped for very wide screens
     if (vw < 400) {
       gigModeScale = 1.2;
     } else if (vw < 600) {
-      gigModeScale = 1.5;
+      gigModeScale = 1.3;
     } else if (vw < 800) {
-      gigModeScale = 1.8;
-    } else if (vw < 1200) {
-      gigModeScale = 2.0;
+      gigModeScale = 1.4;
     } else {
-      gigModeScale = 2.5;
+      gigModeScale = 1.5; // Cap at 1.5 for all screens 800px and wider
     }
   }
 
@@ -312,12 +321,10 @@ const styleRenderedNotes = (scoreDiv, voices, isGigMode = false) => {
 
             // Calculate overhead from all elements except the SVG container
             const header = gigSongItem.querySelector('.gig-current-header');
-            const notes = gigSongItem.querySelector('.gig-song-notes');
             const groovePreview = svg.closest('.gig-groove-preview');
 
             let overhead = 0;
             if (header) overhead += header.offsetHeight;
-            if (notes) overhead += notes.offsetHeight;
 
             // Add padding from various containers
             const cardStyle = window.getComputedStyle(gigSongItem);

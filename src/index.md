@@ -22,7 +22,7 @@ toc: false
       <div class="form-row">
         <div class="form-group">
           <label>Song Title:</label>
-          <input type="text" name="titleInput" required>
+          <input type="text" name="titleInput" maxlength="200" required>
         </div>
         <div class="form-group">
           <label>Tempo (BPM):</label>
@@ -82,13 +82,13 @@ toc: false
       </div>
       <div class="form-group">
         <label>Notes:</label>
-        <textarea name="notesInput" rows="2" 
+        <textarea name="notesInput" rows="2" maxlength="1000"
           placeholder="Add any notes about the song or groove..."></textarea>
       </div>
       <div class="form-group">
         <label>External Link:</label>
-        <input type="url" name="linkInput" 
-          placeholder="https://..." 
+        <input type="url" name="linkInput" maxlength="2048"
+          placeholder="https://..."
           class="textarea-style" />
       </div>
       <button type="submit">Add Song</button>
@@ -2234,9 +2234,19 @@ textarea:focus-visible {
 /* Current song header - number and title in one row */
 .gig-current-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
   margin-bottom: 0.25rem;
+}
+
+.gig-title-notes {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem;
 }
 
 .gig-song-info {
@@ -2298,16 +2308,16 @@ textarea:focus-visible {
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
-  flex: 1;
+  flex-shrink: 0;
 }
 
-/* Current song notes - full width */
-.gig-song-item.current > .gig-song-notes {
-  color: rgba(255, 255, 255, 0.9);
+/* Current song notes - inline with title */
+.gig-song-item.current .gig-song-notes {
+  color: rgba(255, 255, 255, 0.7);
   white-space: normal;
   overflow: visible;
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
+  font-size: 0.9rem;
+  font-style: italic;
 }
 
 /* Current song groove preview - full width, larger */

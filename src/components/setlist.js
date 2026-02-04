@@ -6,6 +6,9 @@ import { renderScore, renderGroovePreview } from './notation.js';
 // Track rendered set list previews
 const renderedSetListPreviews = new Set();
 
+// Track the current observer to properly clean up
+let currentSetListObserver = null;
+
 // Drag scroll state - capped for safety
 let dragScrollActive = false;
 let lastClientY = 0;
@@ -175,6 +178,11 @@ export const renderSetList = (searchTerm = '') => {
  * Set up lazy rendering of set list previews
  */
 const setupLazySetListPreviews = () => {
+  // Disconnect previous observer if it exists
+  if (currentSetListObserver) {
+    currentSetListObserver.disconnect();
+  }
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -196,6 +204,9 @@ const setupLazySetListPreviews = () => {
       }
     });
   }, { rootMargin: '100px' });
+
+  // Store the current observer
+  currentSetListObserver = observer;
 
   document.querySelectorAll('.setlist-table .groove-row').forEach(row => {
     observer.observe(row);
@@ -630,10 +641,9 @@ const handleVisibilityChange = async () => {
 const calculateGigModeScale = () => {
   const vw = window.innerWidth;
   if (vw < 400) return 1.2;
-  if (vw < 600) return 1.5;
-  if (vw < 800) return 1.8;
-  if (vw < 1200) return 2.0;
-  return 2.5;
+  if (vw < 600) return 1.3;
+  if (vw < 800) return 1.4;
+  return 1.5; // Cap at 1.5 for all screens 800px and wider
 };
 
 /**
@@ -669,12 +679,10 @@ const handleGigModeResize = () => {
 
             // Calculate overhead from all elements except the SVG container
             const header = gigSongItem.querySelector('.gig-current-header');
-            const notes = gigSongItem.querySelector('.gig-song-notes');
             const groovePreview = svg.closest('.gig-groove-preview');
 
             let overhead = 0;
             if (header) overhead += header.offsetHeight;
-            if (notes) overhead += notes.offsetHeight;
 
             // Add padding from various containers
             const cardStyle = window.getComputedStyle(gigSongItem);
@@ -770,9 +778,11 @@ const renderGigModeList = () => {
              data-index="${index}" data-song-id="${songId}">
           <div class="gig-current-header">
             <span class="gig-song-number">${displayPosition}</span>
-            <div class="gig-song-title">${song.title}</div>
+            <div class="gig-title-notes">
+              <div class="gig-song-title">${song.title}</div>
+              ${song.notes ? `<div class="gig-song-notes">${song.notes}</div>` : ''}
+            </div>
           </div>
-          ${song.notes ? `<div class="gig-song-notes">${song.notes}</div>` : ''}
           ${song.groove ? `
             <div class="gig-groove-preview">
               <div class="groove-preview-container">

@@ -7,6 +7,9 @@ import { updateGridFromGroove, updateTimeSignature } from './grid-editor.js';
 // Track rendered previews to avoid re-rendering
 const renderedPreviews = new Set();
 
+// Track the current observer to properly clean up
+let currentObserver = null;
+
 /**
  * Render the song library
  * @param {string} searchTerm - Optional search term to filter/highlight
@@ -88,6 +91,11 @@ export const renderLibrary = (searchTerm = '') => {
  * @param {Array} songs - Array of songs to render previews for
  */
 const setupLazyPreviewRendering = (songs) => {
+  // Disconnect previous observer if it exists
+  if (currentObserver) {
+    currentObserver.disconnect();
+  }
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -107,6 +115,9 @@ const setupLazyPreviewRendering = (songs) => {
       }
     });
   }, { rootMargin: '100px' });
+
+  // Store the current observer
+  currentObserver = observer;
 
   // Observe all groove rows
   document.querySelectorAll('.library-table .groove-row').forEach(row => {

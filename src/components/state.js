@@ -146,19 +146,46 @@ const state = {
     // Load library
     const savedLibrary = localStorage.getItem('songLibrary');
     if (savedLibrary) {
-      const songs = JSON.parse(savedLibrary);
-      this.songLibrary.clear();
-      songs.forEach(song => {
-        const migratedSong = migrateSong(song);
-        this.songLibrary.set(migratedSong.id, migratedSong);
-      });
-      this.invalidateCache();
+      try {
+        const songs = JSON.parse(savedLibrary);
+        if (Array.isArray(songs)) {
+          this.songLibrary.clear();
+          songs.forEach(song => {
+            const migratedSong = migrateSong(song);
+            this.songLibrary.set(migratedSong.id, migratedSong);
+          });
+          this.invalidateCache();
+        } else {
+          console.error('Invalid library data format in localStorage');
+          localStorage.removeItem('songLibrary');
+        }
+      } catch (error) {
+        console.error('Error loading library from localStorage:', error);
+        localStorage.removeItem('songLibrary');
+        if (typeof window !== 'undefined' && window.showToast) {
+          window.showToast('Library data corrupted. Starting with empty library.', 'error');
+        }
+      }
     }
 
     // Load set list
     const savedSetList = localStorage.getItem('currentSetList');
     if (savedSetList) {
-      this.currentSetList = JSON.parse(savedSetList);
+      try {
+        const setList = JSON.parse(savedSetList);
+        if (Array.isArray(setList)) {
+          this.currentSetList = setList;
+        } else {
+          console.error('Invalid set list data format in localStorage');
+          localStorage.removeItem('currentSetList');
+        }
+      } catch (error) {
+        console.error('Error loading set list from localStorage:', error);
+        localStorage.removeItem('currentSetList');
+        if (typeof window !== 'undefined' && window.showToast) {
+          window.showToast('Set list data corrupted. Starting with empty set list.', 'error');
+        }
+      }
     }
 
     // Load file names
@@ -175,6 +202,13 @@ const state = {
       localStorage.setItem('songLibrary', JSON.stringify([...this.songLibrary.values()]));
     } catch (error) {
       console.error('Error saving library:', error);
+      if (typeof window !== 'undefined' && window.showToast) {
+        if (error.name === 'QuotaExceededError') {
+          window.showToast('Storage limit reached. Please export your library to save it.', 'error');
+        } else {
+          window.showToast('Error saving library. Please try again.', 'error');
+        }
+      }
     }
   },
 
@@ -187,6 +221,13 @@ const state = {
       localStorage.setItem('currentSetList', JSON.stringify(this.currentSetList));
     } catch (error) {
       console.error('Error saving set list:', error);
+      if (typeof window !== 'undefined' && window.showToast) {
+        if (error.name === 'QuotaExceededError') {
+          window.showToast('Storage limit reached. Please export your data.', 'error');
+        } else {
+          window.showToast('Error saving set list. Please try again.', 'error');
+        }
+      }
     }
   },
 

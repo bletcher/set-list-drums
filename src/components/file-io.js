@@ -310,7 +310,18 @@ export const loadLibraryFromUrl = async (url, onComplete) => {
     if (onComplete) onComplete();
   } catch (error) {
     console.error('Error loading library from URL:', error);
-    showToast(error.message || 'Error loading from URL. Please check the URL and try again.', 'error');
+
+    // Provide better error messages for common issues
+    let errorMessage = error.message;
+    if (error instanceof TypeError && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
+      errorMessage = 'Unable to load from URL. This may be due to CORS restrictions. Try using a service like GitHub Pages, Dropbox, or Google Drive with proper sharing settings.';
+    } else if (error.message.includes('Invalid JSON')) {
+      errorMessage = 'The file at this URL is not valid JSON. Please check the file format.';
+    } else if (error.message.includes('Invalid library format')) {
+      errorMessage = 'The file format is incorrect. Library files should contain an array of songs.';
+    }
+
+    showToast(errorMessage, 'error');
   } finally {
     isFileOperationInProgress = false;
   }
@@ -381,7 +392,18 @@ export const loadSetListFromUrl = async (url, onComplete) => {
     if (onComplete) onComplete();
   } catch (error) {
     console.error('Error loading set list from URL:', error);
-    showToast(error.message || 'Error loading from URL. Please check the URL and try again.', 'error');
+
+    // Provide better error messages for common issues
+    let errorMessage = error.message;
+    if (error instanceof TypeError && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
+      errorMessage = 'Unable to load from URL. This may be due to CORS restrictions. Try using a service like GitHub Pages, Dropbox, or Google Drive with proper sharing settings.';
+    } else if (error.message.includes('Invalid JSON')) {
+      errorMessage = 'The file at this URL is not valid JSON. Please check the file format.';
+    } else if (error.message.includes('Invalid set list format')) {
+      errorMessage = 'The file format is incorrect. Set list files should contain an array of song IDs.';
+    }
+
+    showToast(errorMessage, 'error');
   } finally {
     isFileOperationInProgress = false;
   }
