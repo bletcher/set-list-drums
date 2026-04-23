@@ -17,7 +17,15 @@ export default {
   // ],
 
   // Content to add to the head of the page, e.g. for a favicon:
-  head: '<link rel="icon" href="observable.png" type="image/png" sizes="32x32">',
+  head: `<link rel="icon" href="observable.png" type="image/png" sizes="32x32">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3WCF3TGZ9V"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('set', { 'app_name': 'set-list-drums' });
+    gtag('config', 'G-3WCF3TGZ9V');
+  </script>`,
 
   // The path to the source root.
   root: "src",
